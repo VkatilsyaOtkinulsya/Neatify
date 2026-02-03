@@ -1,8 +1,8 @@
-# 🚀 Neatify Frontend
+# Neatify Frontend
 
 Современное веб-приложение для управления проектамии персональной эффективностью.'
 
-## ✨ Возможности
+## Возможности
 
 - **Vue 3 + Composition API** - современная разработка
 - **TypeScript** - полная типизация для безопасности
@@ -12,7 +12,7 @@
 - **Vue Router** - навигация
 - **SCSS модули** - современная стилизация
 
-## 🚀 Быстрый старт
+## Быстрый старт
 
 ### Предварительные требования
 
@@ -51,51 +51,6 @@
    http://localhost:5173
    ```
 
-## 🔧 Настройка Telegram авторизации
-
-## 🏗️ Структура проекта
-
-```
-src/
-├── components/
-│   ├── ui/                    # Базовые UI компоненты
-│   │   ├── telegram-login/    # Компонент Telegram авторизации (UI)
-│   │   │   ├── TelegramLoginWidget.vue  # Глупый компонент
-│   │   │   └── index.ts
-│   │   ├── button/
-│   │   ├── input/
-│   │   └── ...
-│   └── Profile/
-│       └── Profile.vue
-│
-├── config/
-│   └── telegram.config.ts     # Конфигурация Telegram бота
-│
-├── hooks/
-│   ├── auth/                  # Хуки для аутентификации
-│   │   └── useTelegramAuth.ts # Бизнес-логика Telegram (умный composable)
-│   └── space/                 # Хуки для рабочих пространств
-│
-├── services/
-│   └── auth.service.ts        # Сервисы аутентификации
-│
-├── stores/
-│   └── auth.store.ts          # Глобальное состояние аутентификации
-│
-├── types/
-│   ├── auth.types.ts          # Типы аутентификации
-│   ├── telegram.types.ts      # Типы Telegram
-│   └── ...
-│
-├── views/
-│   ├── Auth/
-│   │   ├── SignIn.vue         # Форма входа
-│   │   └── SignUp.vue         # Форма регистрации с Telegram
-│   ├── Main/
-│   └── Spaces/
-│
-└── App.vue                    # Корневой компонент
-```
 
 ## 📚 Документация
 
