@@ -4,7 +4,7 @@
   "typescript": true,
   "tailwind": {
     "config": "",
-    "css": "src/style.css",
+    "css": "src/styles/globals.css",
     "baseColor": "neutral",
     "cssVariables": true,
     "prefix": ""
@@ -12,9 +12,9 @@
   "aliases": {
     "components": "@/components",
     "composables": "@/composables",
-    "utils": "@/lib/utils",
+    "utils": "@/shared/lib/utils",
     "ui": "@/components/ui",
-    "lib": "@/lib"
+    "lib": "@/shared/lib"
   },
   "iconLibrary": "lucide"
 }

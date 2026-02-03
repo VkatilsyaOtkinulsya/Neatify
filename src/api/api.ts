@@ -1,27 +1,45 @@
-import { useAuthStore } from '@/stores/auth.store';
-import axios from 'axios';
+import { useAuthStore } from '@/shared/stores/auth.store';
+import axios, { type InternalAxiosRequestConfig } from 'axios';
 import router from '@/router';
+import { handleErrorResponse } from '@/shared/lib/utils/error-handler';
 
-const FIREBASE_API_KEY = import.meta.env.VITE_FIREBASE_API_KEY;
+const API_URL = import.meta.env.VITE_API_URL;
+const API_AUTH_URL = import.meta.env.VITE_API_AUTH_URL;
 
-axios.interceptors.request.use((config) => {
-  const url = config.url;
+const PUBLIC_URLS = [
+  `${API_AUTH_URL}${import.meta.env.VITE_API_AUTH_REGISTER_URL}`,
+  `${API_AUTH_URL}${import.meta.env.VITE_API_AUTH_LOGIN_URL}`,
+];
 
-  if (url && !url.includes('signInWithPassword') && !url.includes('signUp')) {
-    const authStore = useAuthStore();
-    const token = authStore.userInfo?.token;
+const isPublic = (url?: string) => {
+  if (!url) return false;
+  return PUBLIC_URLS.some((publicUrl) => url.includes(publicUrl));
+};
 
-    if (token && (!config.params || config.params.auth === undefined)) {
-      config.params = {
-        ...config.params,
-        auth: token,
-      };
-    }
-  }
-  return config;
+const axiosApiInstance = axios.create({
+  baseURL: API_URL,
+  timeout: 10000,
+  headers: {
+    'Content-Type': 'application/json',
+  },
 });
 
-const axiosApiInstance = axios.create();
+axiosApiInstance.interceptors.request.use(
+  (config: InternalAxiosRequestConfig) => {
+    if (isPublic(config.url)) return config;
+
+    const authStore = useAuthStore();
+    const token = authStore.userInfo?.accessToken;
+
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
 
 axiosApiInstance.interceptors.response.use(
   (response) => {
@@ -30,35 +48,51 @@ axiosApiInstance.interceptors.response.use(
 
   async function (error) {
     const authStore = useAuthStore();
-    const originalRequest = error.config;
+    const originalRequest = error.config as InternalAxiosRequestConfig & {
+      _retry?: boolean;
+    };
+
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
-      try {
-        const newTokens = await axios.post(
-          `https://securetoken.googleapis.com/v1/token?key=${FIREBASE_API_KEY}`,
-          {
-            grand_type: 'refreshToken',
-            refresh_token: JSON.parse(localStorage.getItem('userTokens') || '{}').refreshToken,
-          }
-        );
 
-        authStore.userInfo.token = newTokens.data.access_token;
-        authStore.userInfo.refreshToken = newTokens.data.refresh_token;
+      try {
+        const refreshToken = authStore.userInfo?.refreshToken;
+
+        if (!refreshToken) {
+          throw new Error('No refresh token available');
+        }
+
+        const response = await axios.post(`${API_AUTH_URL}/refresh`, {
+          refreshToken: refreshToken,
+        });
+
+        const { token: newToken, refreshToken: newRefreshToken } = response.data;
+
+        authStore.userInfo.accessToken = newToken;
+        authStore.userInfo.refreshToken = newRefreshToken;
+
         localStorage.setItem(
           'userTokens',
           JSON.stringify({
-            token: newTokens.data.access_token,
-            refreshToken: newTokens.data.refresh_token,
+            accessToken: newToken,
+            refreshToken: newRefreshToken,
           })
         );
-        return axios(originalRequest);
+
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return axiosApiInstance(originalRequest);
       } catch (err) {
+        authStore.logout();
         localStorage.removeItem('userTokens');
         router.push('/signin');
-        authStore.userInfo.token = '';
-        authStore.userInfo.refreshToken = '';
+
+        return Promise.reject(err);
       }
     }
+
+    handleErrorResponse(error);
+
+    return Promise.reject(error);
   }
 );
 

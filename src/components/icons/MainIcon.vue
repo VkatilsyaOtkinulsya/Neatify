@@ -1,3 +1,10 @@
+<script setup lang="ts">
+withDefaults(defineProps<{ size?: number; color?: string }>(), {
+  size: 20,
+  color: 'rgb(153, 153, 153)',
+});
+</script>
+
 <template>
   <svg
     :width="size"
@@ -12,19 +19,3 @@
     ></path>
   </svg>
 </template>
-
-<script>
-export default {
-  name: 'MainIcon',
-  props: {
-    size: {
-      type: Number,
-      default: 20,
-    },
-    color: {
-      type: String,
-      default: 'rgb(153, 153, 153)',
-    },
-  },
-};
-</script>

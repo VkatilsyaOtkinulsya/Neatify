@@ -2,33 +2,15 @@
 import ProjectItemIcon from '@/components/icons/ProjectItemIcon.vue';
 import Loader from '@/components/ui/loader/Loader.vue';
 import AddProjectModal from '@/components/ui/modal/AddProjectModal.vue';
-import Modal from '@/components/ui/modal/Modal.vue';
 import EditableTitle from '@/components/ui/title/EditableTitle.vue';
-import { useSpacesStore } from '@/stores/spaces.store';
-import { computed, ref, watch } from 'vue';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-
-defineProps<{
-  spaceId: string;
-}>();
+import { useWorkspaceBoards } from '@/api/queries/useBoard';
 
 const route = useRoute();
-const isLoading = ref(false);
-const spaceId = ref(route.params.spaceId as string);
-const showModal = ref(false);
+const workspaceId = computed(() => route.params.workspaceId as string);
 
-const spaceStore = useSpacesStore();
-
-watch(
-  () => route.params.spaceId,
-  (newSpaceId) => {
-    spaceId.value = newSpaceId as string;
-    spaceStore.currentSpaceId = spaceId.value;
-  },
-  { immediate: true }
-);
-
-const currentProjects = computed(() => spaceStore.currentProjects);
+const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspaceId);
 </script>
 
 <template>
@@ -36,13 +18,13 @@ const currentProjects = computed(() => spaceStore.currentProjects);
     <div class="projects-wrapper__title">
       <EditableTitle />
     </div>
-    <Loader v-if="isLoading" color="#fff" />
-    <div v-else-if="currentProjects" class="projects-list">
-      <template v-for="(project, index) in currentProjects" :key="'project-' + index">
+    <Loader v-if="isLoadingBoards" color="#fff" />
+    <div v-else-if="boards" class="projects-list">
+      <template v-for="(project, index) in boards" :key="'project-' + index">
         <router-link
           :to="{
             name: 'project-tasks',
-            params: { spaceId: spaceId, projectId: project.id },
+            params: { workspaceId: workspaceId, projectId: project.id },
           }"
         >
           <div class="project-item__link">
@@ -50,20 +32,17 @@ const currentProjects = computed(() => spaceStore.currentProjects);
               <ProjectItemIcon />
             </div>
 
-            {{ project.name }}
+            {{ project.title }}
           </div>
-          <div v-if="index < currentProjects.length - 1" class="separator"></div>
+          <div v-if="index < boards.length - 1" class="separator"></div>
         </router-link>
       </template>
     </div>
-    <div v-else>
+    <div v-if="!boards && !isLoadingBoards" class="projects-list_empty">
       <p>Пространство пустое</p>
     </div>
     <div class="projects-list_add-project">
       <AddProjectModal />
-      <Teleport to="body">
-        <Modal type="create" :show="showModal" @close="showModal = false" />
-      </Teleport>
     </div>
   </div>
 </template>
@@ -72,9 +51,9 @@ const currentProjects = computed(() => spaceStore.currentProjects);
 .projects-wrapper {
   display: block;
   width: 50%;
-  margin: 0px 50px;
   box-shadow: 0 4px 14px rgba(0, 0, 0, 0.05);
-  padding: 26px 0 10px 10px;
+  padding: 16px 0 10px 10px;
+  margin-left: 50px;
   border-radius: 10px;
   background-color: #fff;
   box-sizing: border-box;

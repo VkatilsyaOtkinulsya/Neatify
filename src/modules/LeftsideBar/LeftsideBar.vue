@@ -13,20 +13,25 @@ import {
   ToggleIcon,
 } from '@/components/icons/index.ts';
 import { defineAsyncComponent, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/auth.store';
-import type { Space } from '@/models/space.model';
+import { useAuthStore } from '@/shared/stores/auth.store';
+import { useCreateWorkspace } from '@/api/queries/useWorkspace';
 
-defineProps<{
-  spaces: Space[];
-  showLoader: Boolean;
-  userName: string;
-}>();
+interface Props {
+  spaces: {
+    id: string;
+    title: string;
+    memberCount?: number;
+  }[];
+  showLoader: boolean;
+  displayName: string;
+}
+
+defineProps<Props>();
 
 const Modal = defineAsyncComponent(() => import('@/components/ui/modal/Modal.vue'));
 
-const router = useRouter();
 const authStore = useAuthStore();
+const { mutate } = useCreateWorkspace();
 
 const isOpened = ref(true);
 const showModal = ref(false);
@@ -36,11 +41,16 @@ const toggleSidebar = () => {
 };
 
 const logout = () => {
-  authStore.logout();
-  localStorage.removeItem('userTokens');
-  localStorage.removeItem('userData');
   localStorage.removeItem('spaces');
-  router.push('/signin');
+  authStore.logout();
+};
+
+const handleCreateWorkspace = (data: { title: string; description?: string }) => {
+  mutate(data, {
+    onSettled: () => {
+      showModal.value = false;
+    },
+  });
 };
 </script>
 
@@ -52,7 +62,7 @@ const logout = () => {
           <div class="client__link-icon">
             <img src="@/assets/images/client.jpg" alt="client" />
           </div>
-          <div v-if="isOpened" class="client__link-name">{{ userName }}</div>
+          <div v-if="isOpened" class="client__link-name">{{ displayName }}</div>
         </div>
         <div class="navigation__client-toggle">
           <span
@@ -99,21 +109,33 @@ const logout = () => {
                 <p v-if="isOpened">Добавить пространство</p>
               </button>
               <Teleport to="body">
-                <Modal type="create" :show="showModal" @close="showModal = false" />
+                <Modal
+                  type="create"
+                  :is-visible="showModal"
+                  @create="handleCreateWorkspace"
+                  @close="showModal = false"
+                />
               </Teleport>
             </div>
             <Loader v-if="showLoader" color="#fff" />
             <div v-else class="space-list">
               <router-link
-                v-for="(space, index) in spaces"
-                :key="space.id"
-                :to="{ name: 'space-projects', params: { spaceId: space.id } }"
+                v-for="(workspace, index) in spaces"
+                :key="workspace.id"
+                :to="{
+                  name: 'workspace-projects',
+                  params: { workspaceId: workspace.id },
+                }"
               >
-                <SpaceItem :space :index :isOpened>
+                <SpaceItem
+                  :workspace="{ id: workspace.id, name: workspace.title }"
+                  :index
+                  :isOpened
+                >
                   <template #icon>
                     <SpaceIcon />
                   </template>
-                  <template #label> {{ space.name }} </template>
+                  <template #label> {{ workspace.title }} </template>
                 </SpaceItem>
               </router-link>
             </div>

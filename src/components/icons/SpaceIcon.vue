@@ -1,3 +1,18 @@
+<script setup lang="ts">
+import { withDefaults, defineProps } from 'vue';
+
+withDefaults(
+  defineProps<{
+    size?: number;
+    color?: string;
+  }>(),
+  {
+    size: 24,
+    color: 'rgb(153, 153, 153)',
+  }
+);
+</script>
+
 <template>
   <svg
     :width="size"
@@ -30,19 +45,3 @@
     ></path>
   </svg>
 </template>
-
-<script>
-export default {
-  name: 'SpaceIcon',
-  props: {
-    size: {
-      type: Number,
-      default: 24,
-    },
-    color: {
-      type: String,
-      default: 'rgb(153, 153, 153)',
-    },
-  },
-};
-</script>

@@ -1,12 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
-import type { AuthToken } from '@/types/auth.types';
+import type { AuthToken } from '@/features/auth/types/auth.types';
 
 const routes: RouteRecordRaw[] = [
   {
     path: '/signup',
     name: 'signup',
-    component: () => import('@/views/Auth/SignUp.vue'),
+    component: () => import('@/pages/Auth/SignUp.vue'),
     meta: {
       requiresAuth: false,
     },
@@ -14,40 +14,37 @@ const routes: RouteRecordRaw[] = [
   {
     path: '/signin',
     name: 'signin',
-    component: () => import('@/views/Auth/SignIn.vue'),
+    component: () => import('@/pages/Auth/SignIn.vue'),
     meta: {
       requiresAuth: false,
     },
   },
   {
     path: '/',
-    component: () => import('@/views/Main/MainLayout.vue'),
+    component: () => import('@/pages/Main/MainLayout.vue'),
     meta: { requiresAuth: true },
     children: [
       {
         path: 'main',
         name: 'main',
-        component: () => import('@/views/Main/Home.vue'),
+        component: () => import('@/pages/Main/Home.vue'),
       },
       {
-        path: '/spaces/:spaceId',
-        component: () => import('@/views/Spaces/SpaceLayout.vue'),
+        path: '/spaces/:workspaceId',
+        component: () => import('@/pages/Spaces/WorkspaceLayout.vue'),
         props: true,
         meta: { requiresAuth: true },
         children: [
           {
             path: 'projects',
-            name: 'space-projects',
+            name: 'workspace-projects',
             component: () => import('@/modules/Space/SpaceProjects.vue'),
             props: true,
           },
           {
             path: ':projectId/tasks',
             name: 'project-tasks',
-            component: () => import('@/modules/Space/SpaceProjectTasks.vue'),
-            props: (route) => ({
-              project: route.meta.project,
-            }),
+            component: () => import('@/features/board/components/Board.vue'),
           },
         ],
       },
@@ -56,7 +53,7 @@ const routes: RouteRecordRaw[] = [
 
   {
     path: '/account',
-    component: () => import('@/views/ClientProfile.vue'),
+    component: () => import('@/pages/ClientProfile.vue'),
   },
 
   {
@@ -72,7 +69,7 @@ const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const tokens = JSON.parse(localStorage.getItem('userTokens') || '{}') as AuthToken;
-  const isAutheticated: boolean = !!tokens.token;
+  const isAutheticated: boolean = !!tokens.accessToken;
 
   if (to.meta.requiresAuth && !isAutheticated) {
     next({ name: 'signin' });

@@ -3,7 +3,7 @@ import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 
 interface Props {
   style?: string;
-  space: {
+  workspace: {
     id: string;
     name: string;
   };
@@ -18,7 +18,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <a
-    :href="'/space/' + space.id + '/projects'"
+    :href="'/space/' + workspace.id + '/projects'"
     class="nav-item"
     aria-describedby="link-tooltip"
     tabindex="0"
@@ -31,7 +31,7 @@ withDefaults(defineProps<Props>(), {
     </p>
     <Tooltip
       id="link-tooltip"
-      :text="space.name"
+      :text="workspace.name"
       role="tooltip"
       position="right"
       :custom-position="{ left: isOpened ? '50%' : '210%' }"
