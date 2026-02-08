@@ -28,12 +28,39 @@ export const TaskService = {
     return response.data;
   },
 
-  async moveTask(taskId: string, columnId: string, position: number): Promise<Task> {
-    const url = buildUrl(BASE_URL, ':taskId/move', { taskId });
+  async moveTask({
+    taskId,
+    fromColumnId,
+    toColumnId,
+    beforeTaskId,
+    afterTaskId,
+  }: {
+    taskId: string;
+    fromColumnId: string;
+    toColumnId: string;
+    beforeTaskId?: string;
+    afterTaskId?: string;
+  }): Promise<Task> {
+    const query = new URLSearchParams();
+
+    if (beforeTaskId) {
+      query.set('beforeTaskId', beforeTaskId);
+    }
+
+    if (afterTaskId) {
+      query.set('afterTaskId', afterTaskId);
+    }
+
+    const url =
+      buildUrl(BASE_URL, ':taskId/move', { taskId }) +
+      (query.toString() ? `?${query.toString()}` : '');
+
     const response = await axiosApiInstance.patch(url, {
-      columnId,
-      position,
+      taskId,
+      fromColumnId,
+      toColumnId,
     });
+
     return response.data;
   },
 };

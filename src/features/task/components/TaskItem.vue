@@ -17,22 +17,16 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'drag-start': [taskId: string];
+  'drag-start': [];
   'drag-end': [];
 }>();
 
 const isDragging = ref(false);
 const isLoading = ref(false);
-const taskRef = ref();
-
-const handleClick = () => {
-  console.log('clkc');
-};
 
 const { mutate } = useDeleteTask(props.boardId);
 
 const handleDelete = () => {
-  isLoading.value = true;
   mutate(props.id, {
     onSuccess: () => {
       alert('Task deleted successfully');
@@ -40,46 +34,22 @@ const handleDelete = () => {
     onError: (error) => {
       console.error('Failed to delete task:', error);
     },
-    onSettled: () => {
-      isLoading.value = false;
-    },
   });
-};
-
-const handleDragStart = (e: DragEvent) => {
-  isDragging.value = true;
-
-  // Передаем данные о задаче
-  e.dataTransfer!.effectAllowed = 'move';
-  e.dataTransfer!.setData('task-id', props.id);
-  e.dataTransfer!.setData('task-type', 'task');
-
-  // Визуальная обратная связь
-  (e.target as HTMLElement).style.opacity = '0.5';
-
-  emit('drag-start', props.id);
-};
-
-const handleDragEnd = (e: DragEvent) => {
-  isDragging.value = false;
-  (e.target as HTMLElement).style.opacity = '1';
-
-  emit('drag-end');
 };
 </script>
 
 <template>
   <div
-    class="pl-3 py-2 border-1 rounded-ls border-gray-200 relative cusor-grab transition duration-200 ease-in-out active:cursor-grabbing"
-    :class="{ 'opacity-50 pointer-events-none': isLoading, 'is-dragging': isDragging }"
-    @click="handleClick"
-    :ref="taskRef"
+    class="pl-3 py-2 rounded-lg bg-[#ffffff] border-gray-200 relative cusor-grab transition duration-200 ease-in-out cursor-pointer active:cursor-grabbing"
+    :class="{
+      'opacity-50 pointer-events-none': isLoading,
+      'is-dragging': isDragging,
+    }"
     draggable="true"
-    @dragstart="handleDragStart"
-    @dragend="handleDragEnd"
+    @dragstart="emit('drag-start')"
+    @dragend="emit('drag-end')"
   >
-    <
-    <div class="w-full flex justify-between mb-2.5 cursor-pointer" @click="handleClick">
+    <div class="w-full flex justify-between mb-2.5">
       <div class="flex items-start justify-between">
         <span class="flex text-sm text-shadow-sm">
           <slot name="editable_title"></slot>

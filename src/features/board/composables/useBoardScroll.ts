@@ -30,7 +30,7 @@ export const useBoardScroll = () => {
     event.preventDefault();
     const container = event.currentTarget as HTMLElement;
     const x = event.pageX - container.offsetLeft;
-    const walk = (x - startX.value) * 2; // Множитель для скорости скролла
+    const walk = (x - startX.value) * 1; // Множитель для скорости скролла
     container.scrollLeft = scrollLeft.value - walk;
   };
 

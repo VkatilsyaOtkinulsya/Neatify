@@ -1,4 +1,9 @@
-import { useBoardDetail, useCreateBoard, useCreateColumn } from '@/api/queries/useBoard';
+import {
+  useBoardDetail,
+  useCreateBoard,
+  useCreateColumn,
+  useMoveColumn,
+} from '@/api/queries/useBoard';
 import { useBoardTasks, useMoveTask } from '@/api/queries/useTasks';
 import { computed, ref } from 'vue';
 
@@ -16,41 +21,20 @@ export function useBoard(workspaceId: string, boardId: string) {
   const { mutate: createBoard } = useCreateBoard();
   const { mutate: createBoardColumn } = useCreateColumn(boardId);
   const { mutate: moveTaskMutation } = useMoveTask(boardId);
+  const { mutate: moveColumnMutation } = useMoveColumn(boardId);
 
-  // Drag and Drop handlers
-  const handleDragStart = (taskId: string, onDragStateChange?: (isDragging: boolean) => void) => {
-    draggedTaskId.value = taskId;
-    onDragStateChange?.(true);
+  const moveTask = (payload: {
+    taskId: string;
+    fromColumnId: string;
+    toColumnId: string;
+    beforeTaskId?: string;
+    afterTaskId?: string;
+  }) => {
+    moveTaskMutation(payload);
   };
 
-  const handleDragEnd = (onDragStateChange?: (isDragging: boolean) => void) => {
-    draggedTaskId.value = null;
-    onDragStateChange?.(false);
-  };
-
-  const handleDragOver = (event: DragEvent) => {
-    event.preventDefault();
-  };
-
-  const handleDrop = (columnId: string, event: DragEvent) => {
-    event.preventDefault();
-
-    if (!draggedTaskId.value) return;
-
-    const tasksInColumn = tasksData.value?.tasksByColumn[columnId] || [];
-    const newPosition = tasksInColumn.length;
-
-    moveTaskMutation({
-      taskId: draggedTaskId.value,
-      columnId,
-      position: newPosition,
-    });
-
-    draggedTaskId.value = null;
-  };
-
-  const getTasksForColumn = (columnId: string) => {
-    return tasksData.value?.tasksByColumn[columnId] || [];
+  const moveColumn = ({ columnId, position }: { columnId: string; position: number }) => {
+    moveColumnMutation({ columnId, position });
   };
 
   return {
@@ -60,7 +44,6 @@ export function useBoard(workspaceId: string, boardId: string) {
 
     createBoard,
     createBoardColumn,
-    getTasksForColumn,
 
     isLoadingBoard,
     isError,
@@ -69,10 +52,7 @@ export function useBoard(workspaceId: string, boardId: string) {
     isLoadingTasks,
     isErrorTasks,
 
-    // Drag and Drop
-    handleDragStart,
-    handleDragEnd,
-    handleDragOver,
-    handleDrop,
+    moveTask,
+    moveColumn,
   };
 }

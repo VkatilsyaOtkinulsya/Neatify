@@ -1,51 +1,51 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import Column from './Column.vue';
-import TaskItem from '@/features/task/components/TaskItem.vue';
-import { useBoard } from '../composables/useBoard';
-import AddColumnButton from './AddColumnButton.vue';
-import { useCreateTask } from '@/api/queries/useTasks';
 import { computed, defineAsyncComponent, ref } from 'vue';
-import type { Task } from '@/features/task/types/task.types';
-import { useBoardScroll } from '../composables/useBoardScroll';
-import Loader from '@/components/ui/loader/Loader.vue';
+
+import Column from './Column.vue';
+import ColumnsList from './ColumnsList.vue';
+import AddColumnButton from './AddColumnButton.vue';
 import BoardHeader from './BoardHeader.vue';
-import { useVirtualList} from '@vueuse/core';
+import Loader from '@/components/ui/loader/Loader.vue';
+
+import { useBoard } from '../composables/useBoard';
+import { useCreateTask } from '@/api/queries/useTasks';
+import type { Task } from '@/features/task/types/task.types';
 
 const AddTaskModal = defineAsyncComponent(() => import('@/features/task/components/AddTask.vue'));
 
 const route = useRoute();
 const boardId = route.params.projectId as string;
 const workspaceId = route.params.workspaceId as string;
+
 const showModal = ref(false);
-const currentColumnId = ref('');
+const currentColumnId = ref<string>('');
 
 const {
   board,
-  title,
-  createBoardColumn,
-  handleDragStart: dragStart,
-  handleDragEnd: dragEnd,
-  handleDragOver,
-  handleDrop,
+  tasksData,
   isLoadingBoard,
   isLoadingTasks,
   isError,
-  tasksData,
+  createBoardColumn,
+  moveTask,
+  moveColumn,
 } = useBoard(workspaceId, boardId);
 
 const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
 
-const { mutate } = useCreateTask(boardId);
+const { mutate: createTask } = useCreateTask(boardId);
+
+// ---------- UI actions ----------
 
 const openTaskModal = (columnId: string) => {
-  currentColumnId.value  = columnId;
+  currentColumnId.value = columnId;
   showModal.value = true;
-}
+};
 
-const handleCreateTask = (data: Partial<Task>): void => {
-  mutate(
-    { ...data, boardId: boardId },
+const handleCreateTask = (data: Partial<Task>) => {
+  createTask(
+    { ...data, boardId },
     {
       onSettled: () => {
         showModal.value = false;
@@ -55,7 +55,7 @@ const handleCreateTask = (data: Partial<Task>): void => {
 };
 
 const handleCreateColumn = (title: string) => {
-  const nextPosition = board.value?.columns.length || 0;
+  const nextPosition = board.value?.columns.length ?? 0;
 
   createBoardColumn({
     title,
@@ -65,16 +65,20 @@ const handleCreateColumn = (title: string) => {
   });
 };
 
-const { setDraggingTask, handleHorizontalScroll } = useBoardScroll();
+// ---------- DnD intentions ----------
 
-const handleDragStart = (taskId: string) => {
-  setDraggingTask(true);
-  dragStart(taskId, setDraggingTask);
+const handleTaskDrop = (payload: {
+  taskId: string;
+  fromColumnId: string;
+  toColumnId: string;
+  beforeTaskId?: string;
+  afterTaskId?: string;
+}) => {
+  moveTask(payload);
 };
 
-const handleDragEnd = () => {
-  setDraggingTask(false);
-  dragEnd(setDraggingTask);
+const handleColumnDrop = (columnId: string, toIndex: number) => {
+  moveColumn({ columnId, position: toIndex });
 };
 </script>
 
@@ -86,44 +90,27 @@ const handleDragEnd = () => {
 
     <div v-else-if="isError">Error loading board</div>
 
-    <div v-else-if="board && tasksData" class="h-full">
+    <div v-else-if="board && tasksData" class="h-full" >
       <BoardHeader :taskCount="tasksData.totalCount" />
 
-      <div class="columns-container" @wheel="handleHorizontalScroll">
-        <Column
-          :class="[col.taskLimit ?? 'no-limit']"
-          :color="col.color"
-          v-for="col in board.columns"
-          :key="col._id"
-          @dragover="handleDragOver"
-          @drop="(event: DragEvent) => handleDrop(col._id, event)"
-        >
-          <template #header>
-            <p>{{ col.title }}</p>
-          </template>
+      <ColumnsList :columns="board.columns" @column-drop="handleColumnDrop">
+        <template #column="{ column }">
+          <Column
+            :column="column"
+            :color="column.color"
+            :tasks="tasksByColumn[column._id] || []"
+            @task-drop="handleTaskDrop"
+            @add-task="openTaskModal"
+          >
+            <template #header>
+              <p>{{ column.title }}</p>
+            </template>
 
-          <template #tasks-list>
-            <TaskItem
-              v-for="task in tasksByColumn[col._id] || []"
-              :key="task.id"
-              :id="task.id"
-              :board-id="boardId"
-              :tags="task.tags"
-              :priority="task.priority"
-              :checklist="task.checklist"
-              draggable="true"
-              @dragstart="handleDragStart(task.id)"
-              @dragend="handleDragEnd"
-            >
-              <template #editable_title>{{ task.title }}</template>
-            </TaskItem>
-          </template>
-
-          <template #add-task-button>
+            <template #add-task-button>
             <button
-              v-if="col.taskLimit != (tasksByColumn[col._id]?.length ?? 0)""
+              v-if="column.taskLimit != (tasksByColumn[column._id]?.length ?? 0)""
               id="add-task-button"
-              @click="openTaskModal(col._id)"
+              @click="openTaskModal(column._id)"
               class="add-task__button"
             >
               <div class="add-icon"></div>
@@ -132,16 +119,20 @@ const handleDragEnd = () => {
 
             <p v-else class="align-center text-red-600">лимит задач</p>
           </template>
-        </Column>
-        <AddColumnButton @create="handleCreateColumn" />
-      </div>
+          </Column>
+        </template>
+
+        <template #add-column>
+          <AddColumnButton @create="handleCreateColumn" />
+        </template>
+      </ColumnsList>
+
       <Teleport to="body">
         <AddTaskModal
-          type="create"
           :is-visible="showModal"
+          :column-id="currentColumnId"
           @create="handleCreateTask"
           @close="showModal = false"
-          :column-id="currentColumnId"
         />
       </Teleport>
     </div>

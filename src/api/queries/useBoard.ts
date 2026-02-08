@@ -118,6 +118,20 @@ export function useCreateColumn(boardId: string) {
   });
 }
 
+export function useMoveColumn(boardId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ columnId, position }: { columnId: string; position: number }) =>
+      BoardService.moveColumn(boardId, columnId, { position }),
+
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: boardKeys.detail(boardId) });
+      await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
+    },
+  });
+}
+
 //  обновление
 
 //  удаление

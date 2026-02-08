@@ -53,15 +53,13 @@ export function useMoveTask(boardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({
-      taskId,
-      columnId,
-      position,
-    }: {
+    mutationFn: (payload: {
       taskId: string;
-      columnId: string;
-      position: number;
-    }) => TaskService.moveTask(taskId, columnId, position),
+      fromColumnId: string;
+      toColumnId: string;
+      beforeTaskId?: string;
+      afterTaskId?: string;
+    }) => TaskService.moveTask(payload),
 
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
