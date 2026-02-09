@@ -46,6 +46,8 @@ const handleDelete = () => {
       'is-dragging': isDragging,
     }"
     draggable="true"
+    @pointerdown.stop
+    @mousedown.stop
     @dragstart="emit('drag-start')"
     @dragend="emit('drag-end')"
   >

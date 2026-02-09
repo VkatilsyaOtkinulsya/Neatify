@@ -35,8 +35,8 @@ const getTaskNeighbors = (index: number) => {
   const tasks = orderedTasks.value;
 
   return {
-    beforeTaskId: tasks[index - 1]?.id,
-    afterTaskId: tasks[index]?.id,
+    afterTaskId: tasks[index - 1]?.id,
+    beforeTaskId: tasks[index]?.id,
   };
 };
 
@@ -142,9 +142,10 @@ const handleColumnDragEnd = () => {
   display: flex;
   flex-direction: column;
   min-width: 17rem;
-  height: fit-content;
+  height: 100%;
   max-height: 100%;
   flex-shrink: 0;
+  overflow: hidden;
   border: 1px solid #333333;
   border-radius: 0.75rem;
   box-shadow: 0px 0px 12px 3px rgba(0, 0, 0, 0.15);
@@ -157,13 +158,15 @@ const handleColumnDragEnd = () => {
   }
 
   .column-content {
-    margin: -8px 0;
+    flex: 1 1 auto;
+    margin-top: -8px;
     padding: 0.5rem 0.25rem 0;
 
     .tasks-list {
       display: flex;
       flex-direction: column;
       padding: 0 0.25rem;
+      overflow-y: auto;
     }
 
     .drop-zone {
@@ -187,11 +190,11 @@ const handleColumnDragEnd = () => {
   }
 
   .add-task {
+    flex-shrink: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 10px;
-    margin-top: auto;
+    padding: 0 10px 10px;
   }
 }
 </style>
