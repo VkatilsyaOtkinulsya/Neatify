@@ -42,9 +42,31 @@ const routes: RouteRecordRaw[] = [
             props: true,
           },
           {
-            path: ':projectId/tasks',
+            path: ':projectId',
             name: 'project-tasks',
-            component: () => import('@/features/board/components/Board.vue'),
+            component: () => import('@/modules/Project/components/ProjectDetails.vue'),
+            children: [
+              {
+                path: '',
+                redirect: 'board',
+              },
+              {
+                path: 'board',
+                name: 'board',
+                component: () => import('@/features/board/components/Board.vue'),
+              },
+
+              {
+                path: 'dashboard',
+                name: 'dashboard',
+                component: () => import('@/features/dashboard/components/Dashboard.vue'),
+              },
+              {
+                path: 'table',
+                name: 'table',
+                component: () => import('@/features/table/components/Table.vue'),
+              },
+            ],
           },
         ],
       },

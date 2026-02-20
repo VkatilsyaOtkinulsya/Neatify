@@ -29,9 +29,7 @@ export function useCreateTask(boardId: string) {
       return TaskService.createInBoard(data.boardId, data);
     },
     onSuccess: () => {
-      console.log('должно инвалиднуться', taskKeys.byBoard(boardId));
       queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
-      console.log('должно обновиться');
     },
   });
 }
@@ -42,9 +40,7 @@ export function useDeleteTask(boardId: string) {
   return useMutation({
     mutationFn: (taskId: string) => TaskService.delete(taskId, true).then(() => boardId),
     onSuccess: () => {
-      console.log('должно инвалиднуться');
       queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
-      console.log('должно обновиться');
     },
   });
 }

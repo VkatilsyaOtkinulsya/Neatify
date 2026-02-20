@@ -4,7 +4,7 @@ import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 
 const props = defineProps<{
   modelValue: string | number | null;
-  items: string[];
+  items: readonly string[];
   placeholder?: string;
 }>();
 

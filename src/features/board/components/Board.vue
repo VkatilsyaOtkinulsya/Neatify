@@ -11,8 +11,9 @@ import Loader from '@/components/ui/loader/Loader.vue';
 import { useBoard } from '../composables/useBoard';
 import { useCreateTask } from '@/api/queries/useTasks';
 import type { Task } from '@/features/task/types/task.types';
+import { showNotification } from '@/shared/lib/utils/error-handler';
 
-const AddTaskModal = defineAsyncComponent(() => import('@/features/task/components/AddTask.vue'));
+const TaskFormModal = defineAsyncComponent(() => import('@/features/task/components/TaskFormModal.vue'));
 
 const route = useRoute();
 const boardId = route.params.projectId as string;
@@ -34,7 +35,8 @@ const {
 
 const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
 
-const { mutate: createTask } = useCreateTask(boardId);
+const { mutate: createTask, isPending } = useCreateTask(boardId);
+
 
 // ---------- UI actions ----------
 
@@ -50,6 +52,9 @@ const handleCreateTask = (data: Partial<Task>) => {
       onSettled: () => {
         showModal.value = false;
       },
+      onError: () => {
+        showNotification('Ошибка создания задачи', 'error');
+      }
     }
   );
 };
@@ -114,7 +119,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
               class="add-task__button"
             >
               <div class="add-icon"></div>
-              <p>Добавить задачу</p>
+              <p>{{ isPending ? 'Создается...' : 'Добавить задачу' }} </p>
             </button>
 
             <p v-else class="align-center text-red-600">лимит задач</p>
@@ -128,7 +133,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
       </ColumnsList>
 
       <Teleport to="body">
-        <AddTaskModal
+        <TaskFormModal
           :is-visible="showModal"
           :column-id="currentColumnId"
           @create="handleCreateTask"

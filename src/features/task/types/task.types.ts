@@ -1,11 +1,11 @@
-export const TaskPriorityEnum = {
+export const TaskPriority = {
   LOW: 'low',
   MEDIUM: 'medium',
   HIGH: 'high',
   URGENT: 'urgent',
 } as const;
 
-export type TaskPriority = (typeof TaskPriorityEnum)[keyof typeof TaskPriorityEnum];
+export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority];
 
 export const TaskStatusEnum = {
   ACTIVE: 'active',
@@ -86,7 +86,7 @@ export interface Task {
 
   position: number;
 
-  assignees: string[]; // массив userId
+  assignees: string[];
   creator: string;
 
   priority: TaskPriority;
