@@ -7,7 +7,7 @@ export const taskKeys = {
   byBoard: (boardId?: string) => ['Board tasks', boardId] as const,
 };
 
-export function useBoardTasks(boardId: string) {
+export function useProjectTasks(boardId: string) {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: taskKeys.byBoard(boardId),
     queryFn: () => TaskService.getBoardTasks(boardId),

@@ -43,11 +43,12 @@ const routes: RouteRecordRaw[] = [
           },
           {
             path: ':projectId',
-            name: 'project-tasks',
+            name: 'project-details',
             component: () => import('@/modules/Project/components/ProjectDetails.vue'),
             children: [
               {
                 path: '',
+                name: 'default',
                 redirect: 'board',
               },
               {
@@ -55,16 +56,15 @@ const routes: RouteRecordRaw[] = [
                 name: 'board',
                 component: () => import('@/features/board/components/Board.vue'),
               },
-
               {
-                path: 'dashboard',
-                name: 'dashboard',
-                component: () => import('@/features/dashboard/components/Dashboard.vue'),
+                path: 'review',
+                name: 'review',
+                component: () => import('@/modules/Dashboard/components/Review.vue'),
               },
               {
                 path: 'table',
                 name: 'table',
-                component: () => import('@/features/table/components/Table.vue'),
+                component: () => import('@/modules/Table/components/Table.vue'),
               },
             ],
           },

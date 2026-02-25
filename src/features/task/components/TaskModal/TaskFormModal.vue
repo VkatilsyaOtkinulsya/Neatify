@@ -5,6 +5,7 @@ import {
   TaskStatusEnum,
   type ChecklistItem,
   type Tag,
+  type Task,
   type TaskStatus,
 } from '@/features/task/types/task.types';
 import { useAuthStore } from '@/shared/stores/auth.store';
@@ -23,6 +24,7 @@ const priorityMap: Record<PriorityLabel, TaskPriority> = {
 interface Props {
   isVisible: boolean;
   columnId: string;
+  taskData?: Task;
 }
 
 const props = defineProps<Props>();

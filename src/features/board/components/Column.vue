@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, nextTick, watch } from 'vue';
 import { useBoardDragStore } from '../boardDrag.store';
 import TaskItem from '@/features/task/components/TaskItem.vue';
 import type { Task } from '@/features/task/types/task.types';
 import type { BoardColumn } from '../types/project.types';
+import Input from '@/components/ui/input/Input.vue';
 
 const props = defineProps<{
   column: BoardColumn;
@@ -21,15 +22,62 @@ const emits = defineEmits<{
       afterTaskId?: string;
     },
   ];
+  'update-column': [payload: { columnId: string; data: Partial<BoardColumn> }];
   'column-drag-start': [payload: { columnId: string }];
   'column-drag-end': [];
+  'edit-task': [taskId: string];
 }>();
 
 const dragStore = useBoardDragStore();
 const hoverIndex = ref<number | null>(null);
+const inputRef = ref<HTMLInputElement | null>(null);
 
-const orderedTasks = computed(() => [...props.tasks].sort((a, b) => a.position - b.position));
+const orderedTasks = computed(() => {
+  const tasks = props.tasks;
+  if (!tasks.length) return tasks;
+  return tasks.slice().sort((a, b) => a.position - b.position);
+});
 const isEmpty = computed(() => orderedTasks.value.length === 0);
+
+const isEditingColumnTitle = ref(false);
+const editedColumnTitle = ref('');
+
+const startEditColumnTitle = async () => {
+  isEditingColumnTitle.value = true;
+
+  await nextTick();
+  requestAnimationFrame(() => {
+    inputRef.value?.focus();
+    inputRef.value?.select();
+  });
+};
+
+const finishEditColumnTitle = () => {
+  if (!isEditingColumnTitle.value) return;
+
+  isEditingColumnTitle.value = false;
+
+  const newTitle = editedColumnTitle.value.trim();
+  const oldTitle = props.column.title;
+
+  if (!newTitle || newTitle === oldTitle) {
+    editedColumnTitle.value = oldTitle;
+    return;
+  }
+
+  emits('update-column', {
+    columnId: props.column._id,
+    data: { title: newTitle },
+  });
+};
+
+const cancelEdit = () => {
+  editedColumnTitle.value = props.column.title;
+  inputRef.value?.blur();
+};
+const handleEnter = () => {
+  inputRef.value?.blur();
+};
 
 const getTaskNeighbors = (index: number) => {
   const tasks = orderedTasks.value;
@@ -76,18 +124,39 @@ const handleColumnDragStart = () => {
 const handleColumnDragEnd = () => {
   emits('column-drag-end');
 };
+
+watch(
+  () => props.column.title,
+  (v) => {
+    if (!isEditingColumnTitle.value) {
+      editedColumnTitle.value = v;
+    }
+  },
+  { immediate: true }
+);
 </script>
 
 <template>
   <div class="column-container">
     <div class="column" :style="{ backgroundColor: color }">
       <div
-        class="column-header cursor-grab active:cursor-grabbing"
-        draggable="true"
+        class="column-header cursor-grab active:cursor-grabbing hover:cursor-pointer"
+        :draggable="!isEditingColumnTitle"
         @dragstart="handleColumnDragStart"
         @dragend="handleColumnDragEnd"
       >
-        <slot name="header" />
+        <p @mousedown.stop @click.stop="startEditColumnTitle" v-if="!isEditingColumnTitle">
+          {{ editedColumnTitle }}
+        </p>
+        <Input
+          v-else
+          ref="inputRef"
+          v-model="editedColumnTitle"
+          :placeholder="editedColumnTitle"
+          @blur="finishEditColumnTitle"
+          @keydown.enter.prevent="handleEnter"
+          @keydown.esc="cancelEdit"
+        />
       </div>
       <div class="column-content">
         <div class="tasks-list" ref="listRef">
@@ -109,6 +178,7 @@ const handleColumnDragEnd = () => {
               :checklist="task.checklist"
               @drag-start="dragStore.startTaskDrag(task.id, props.column._id)"
               @drag-end="dragStore.clear"
+              @click="emits('edit-task', task.id)"
             >
               <template #editable_title>
                 {{ task.title }}

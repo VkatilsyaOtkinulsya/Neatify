@@ -9,10 +9,10 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { PlusIcon } from 'lucide-vue-next';
-import Input from '../selfmade-input/Input.vue';
 import { ref } from 'vue';
 import Textarea from '../textarea/Textarea.vue';
 import Button from '../button/Button.vue';
+import Input from '../selfmade-input/Input.vue';
 
 const name = ref('');
 </script>
@@ -35,14 +35,34 @@ const name = ref('');
           Make changes to your profile here. Click save when you're done.
         </DialogDescription>
         <div class="grid w-full gap-1.5">
-          <Input :modelValue="name" type="text" placeholder="Название проекта" />
-          <Textarea placeholder="Описание" class="resize-none" />
+          <Input
+            class="modal-input"
+            :modelValue="name"
+            type="text"
+            placeholder="Название проекта"
+            required
+          />
+          <Textarea class="modal-input" placeholder="Описание" />
         </div>
       </DialogHeader>
 
       <DialogFooter>
-        <Button>Создать</Button>
+        <Button type="submit">Создать</Button>
       </DialogFooter>
     </DialogContent>
   </Dialog>
 </template>
+
+<style scoped lang="scss">
+.modal-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1px solid rgb(229, 231, 235);
+  border-radius: 6px;
+  box-sizing: border-box;
+
+  &:focus {
+    border-color: #85deab;
+  }
+}
+</style>

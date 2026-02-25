@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue';
+import { ref, type HTMLAttributes } from 'vue';
 import { useVModel } from '@vueuse/core';
 import { cn } from '@/shared/lib/utils';
 
@@ -17,11 +17,20 @@ const modelValue = useVModel(props, 'modelValue', emits, {
   passive: true,
   defaultValue: props.defaultValue,
 });
+
+const el = ref<HTMLInputElement | null>(null);
+
+defineExpose({
+  focus: () => el.value?.focus(),
+  select: () => el.value?.select(),
+  blur: () => el.value?.blur(),
+});
 </script>
 
 <template>
   <input
     v-model="modelValue"
+    ref="el"
     data-slot="input"
     :class="
       cn(

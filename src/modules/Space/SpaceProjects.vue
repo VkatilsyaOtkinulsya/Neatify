@@ -23,7 +23,7 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
       <template v-for="(project, index) in boards" :key="'project-' + index">
         <router-link
           :to="{
-            name: 'project-tasks',
+            name: 'project-details',
             params: { workspaceId: workspaceId, projectId: project.id },
           }"
         >

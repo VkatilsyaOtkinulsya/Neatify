@@ -38,4 +38,14 @@ export const BoardService = {
     const response = await axiosApiInstance.patch(url, data);
     return response.data;
   },
+
+  async updateColumn(
+    boardId: string,
+    columnId: string,
+    data: Partial<BoardColumn>
+  ): Promise<BoardColumn> {
+    const url = buildUrl(BASE_URL, ':boardId/column/:columnId', { boardId, columnId });
+    const response = await axiosApiInstance.post(url, data);
+    return response.data;
+  },
 };

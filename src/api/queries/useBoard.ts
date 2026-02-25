@@ -132,6 +132,19 @@ export function useMoveColumn(boardId: string) {
   });
 }
 
+export function useUpdateColumn(boardId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ columnId, data }: { columnId: string; data: Partial<BoardColumn> }) => {
+      return BoardService.updateColumn(boardId, columnId, data);
+    },
+
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
+    },
+  });
+}
 //  обновление
 
 //  удаление

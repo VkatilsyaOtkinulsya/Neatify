@@ -5,15 +5,15 @@ import { computed, defineAsyncComponent, ref } from 'vue';
 import Column from './Column.vue';
 import ColumnsList from './ColumnsList.vue';
 import AddColumnButton from './AddColumnButton.vue';
-import BoardHeader from './BoardHeader.vue';
 import Loader from '@/components/ui/loader/Loader.vue';
 
 import { useBoard } from '../composables/useBoard';
 import { useCreateTask } from '@/api/queries/useTasks';
+import { useUpdateColumn } from '@/api/queries/useBoard';
 import type { Task } from '@/features/task/types/task.types';
 import { showNotification } from '@/shared/lib/utils/error-handler';
 
-const TaskFormModal = defineAsyncComponent(() => import('@/features/task/components/TaskFormModal.vue'));
+const TaskFormModal = defineAsyncComponent(() => import('@/features/task/components/TaskModal/TaskFormModal.vue'));
 
 const route = useRoute();
 const boardId = route.params.projectId as string;
@@ -21,9 +21,10 @@ const workspaceId = route.params.workspaceId as string;
 
 const showModal = ref(false);
 const currentColumnId = ref<string>('');
+const currentTaskId = ref<string>('');
 
 const {
-  board,
+  project: board,
   tasksData,
   isLoadingBoard,
   isLoadingTasks,
@@ -33,9 +34,11 @@ const {
   moveColumn,
 } = useBoard(workspaceId, boardId);
 
+const editTask = computed(() => tasksData.value?.tasks.find((task) => task.id = currentTaskId.value))
 const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
 
 const { mutate: createTask, isPending } = useCreateTask(boardId);
+const { mutate: updateColumnMutation } = useUpdateColumn(boardId);
 
 
 // ---------- UI actions ----------
@@ -70,6 +73,10 @@ const handleCreateColumn = (title: string) => {
   });
 };
 
+const handleUpdateColumn = (payload: { columnId: string; data: Partial<Task> }) => {
+  updateColumnMutation({ columnId: payload.columnId, data: payload.data });
+};
+
 // ---------- DnD intentions ----------
 
 const handleTaskDrop = (payload: {
@@ -96,9 +103,8 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
     <div v-else-if="isError">Error loading board</div>
 
     <div v-else-if="board && tasksData" class="h-full" >
-      <BoardHeader :taskCount="tasksData.totalCount" />
 
-      <ColumnsList :columns="board.columns" @column-drop="handleColumnDrop">
+      <ColumnsList :columns="board.columns" :board-id="boardId" @column-drop="handleColumnDrop">
         <template #column="{ column }">
           <Column
             :column="column"
@@ -106,11 +112,9 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
             :tasks="tasksByColumn[column._id] || []"
             @task-drop="handleTaskDrop"
             @add-task="openTaskModal"
+            @update-column="handleUpdateColumn"
+            @edit-task="openTaskModal"
           >
-            <template #header>
-              <p>{{ column.title }}</p>
-            </template>
-
             <template #add-task-button>
             <button
               v-if="column.taskLimit != (tasksByColumn[column._id]?.length ?? 0)""
@@ -136,6 +140,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
         <TaskFormModal
           :is-visible="showModal"
           :column-id="currentColumnId"
+          :task-data="editTask"
           @create="handleCreateTask"
           @close="showModal = false"
         />

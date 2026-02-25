@@ -3,9 +3,9 @@ import { computed } from 'vue';
 import Select from '@/components/ui/select/Select.vue';
 import Textarea from '@/components/ui/textarea/Textarea.vue';
 import TagInput from '@/components/ui/TagInput/TagInput.vue';
-// import ChecklistEditor from './ChecklistEditor.vue';
-// import DateRangePicker from './DateRangePicker.vue';
-// import AssigneeSelector from './AssigneeSelector.vue';
+import ChecklistEditor from './ChecklistEditor.vue';
+import DateRangePicker from './DateRangePicker.vue';
+import AssigneeSelector from './AssigneeSelector.vue';
 import { TaskStatusEnum, type Tag, type TaskStatus } from '@/features/task/types/task.types';
 import Input from '@/components/ui/input/Input.vue';
 
@@ -145,7 +145,7 @@ const dates = computed({
       />
     </div>
 
-    <!-- <div class="space-y-1">
+    <div class="space-y-1">
       <p class="text-sm text-muted-foreground">Исполнители</p>
       <AssigneeSelector v-model="assignees" />
     </div>
@@ -158,7 +158,7 @@ const dates = computed({
     <div class="space-y-1">
       <p class="text-sm text-muted-foreground">Чек-лист</p>
       <ChecklistEditor v-model="checklist" />
-    </div> -->
+    </div>
 
     <!-- Tags -->
     <div class="space-y-1">

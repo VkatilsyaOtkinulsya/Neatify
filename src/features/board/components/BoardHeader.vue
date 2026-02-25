@@ -1,7 +1,13 @@
 <script setup lang="ts">
-defineProps<{
-  taskCount: number;
-}>();
+import { ref } from 'vue';
+
+defineProps<{}>();
+
+const isActive = ref<string>('board');
+
+const handleLinkClick = (link: string) => {
+  isActive.value = link;
+};
 </script>
 
 <template>
@@ -9,31 +15,24 @@ defineProps<{
     <div class="w-full flex items-center justify-between px-5 shrink-0 backdrop-blur-xs min-h-12">
       <nav class="flex pl-5">
         <ol class="flex gap-3.5 items-center">
-          <li class="nav-item">
-            <button class="nav-btn"><a class="nav-link" href="#">Обзор</a></button>
-          </li>
-          <li
-            class="nav-item"
-            style="
-              opacity: 100;
-              color: #11429d;
-              background-color: rgba(162, 223, 255, 0.8);
-              pointer-events: auto;
-            "
-          >
-            <button class="nav-btn">
-              <a class="nav-link" href="#">Доска</a>
+          <li :class="{ active: isActive === 'review', 'nav-item': true }">
+            <button class="nav-btn" @click="handleLinkClick('review')">
+              <router-link class="nav-link" :to="{ name: 'review' }">Обзор</router-link>
             </button>
           </li>
-          <li class="nav-item">
-            <button class="nav-btn"><a class="nav-link" href="#">Список</a></button>
+          <li :class="{ active: isActive === 'board', 'nav-item': true }">
+            <button class="nav-btn" @click="handleLinkClick('board')">
+              <router-link class="nav-link" :to="{ name: 'board' }">Доска</router-link>
+            </button>
           </li>
-          <li class="nav-item">
-            <button class="nav-btn"><a class="nav-link" href="#">Календарь</a></button>
+          <li :class="{ active: isActive === 'table', 'nav-item': true }">
+            <button class="nav-btn" @click="handleLinkClick('table')">
+              <router-link class="nav-link" :to="{ name: 'table' }">Список</router-link>
+            </button>
           </li>
         </ol>
       </nav>
-      <p class="align-center h-fit">Активных задач: {{ taskCount }}</p>
+      <p class="align-center h-fit">Активных задач:</p>
     </div>
   </div>
 </template>
@@ -48,8 +47,14 @@ defineProps<{
   border-radius: 0.5rem;
   cursor: pointer;
 
-  pointer-events: none;
   opacity: 0.5;
+}
+
+.nav-item.active {
+  opacity: 100;
+  color: #11429d;
+  background-color: rgba(162, 223, 255, 0.8);
+  pointer-events: auto;
 }
 
 .nav-btn {

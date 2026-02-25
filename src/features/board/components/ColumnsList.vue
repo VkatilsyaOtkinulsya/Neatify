@@ -10,7 +10,6 @@ const props = defineProps<{
 
 const emits = defineEmits<{
   'column-drop': [columnId: string, toIndex: number];
-  'create-column': [];
 }>();
 
 const dragStore = useBoardDragStore();

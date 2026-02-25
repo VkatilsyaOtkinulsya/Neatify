@@ -4,19 +4,23 @@ import {
   useCreateColumn,
   useMoveColumn,
 } from '@/api/queries/useBoard';
-import { useBoardTasks, useMoveTask } from '@/api/queries/useTasks';
+import { useProjectTasks, useMoveTask } from '@/api/queries/useTasks';
 import { computed, ref } from 'vue';
 
 export function useBoard(workspaceId: string, boardId: string) {
   const draggedTaskId = ref<string | null>(null);
 
-  const { data: board, isLoading: isLoadingBoard, isError } = useBoardDetail(workspaceId, boardId);
+  const {
+    data: project,
+    isLoading: isLoadingBoard,
+    isError,
+  } = useBoardDetail(workspaceId, boardId);
 
   const {
     data: tasksData,
     isLoading: isLoadingTasks,
     isError: isErrorTasks,
-  } = useBoardTasks(boardId);
+  } = useProjectTasks(boardId);
 
   const { mutate: createBoard } = useCreateBoard();
   const { mutate: createBoardColumn } = useCreateColumn(boardId);
@@ -38,8 +42,8 @@ export function useBoard(workspaceId: string, boardId: string) {
   };
 
   return {
-    title: computed(() => board.value?.title),
-    board,
+    title: computed(() => project.value?.title),
+    project,
     draggedTaskId,
 
     createBoard,
