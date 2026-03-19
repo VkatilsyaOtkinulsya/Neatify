@@ -28,7 +28,7 @@ const handleEdit = () => {
       <MoreVerticalIcon class="w-4 h-4 rounded-full hover:bg-gray-300" />
     </DropdownMenuTrigger>
     <DropdownMenuContent>
-      <DropdownMenuItem @click="handleEdit">Редактировать </DropdownMenuItem>
+      <DropdownMenuItem @click="handleEdit">Редактировать</DropdownMenuItem>
       <DropdownMenuItem @click="handleComplete">
         Выполнить
         <DropdownMenuShortcut> <Check /> </DropdownMenuShortcut>

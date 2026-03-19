@@ -1,49 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue';
-import Select from '@/components/ui/select/Select.vue';
+import SelectTaskForm from './SelectTaskForm.vue';
 import Textarea from '@/components/ui/textarea/Textarea.vue';
 import TagInput from '@/components/ui/TagInput/TagInput.vue';
 import ChecklistEditor from './ChecklistEditor.vue';
 import DateRangePicker from './DateRangePicker.vue';
 import AssigneeSelector from './AssigneeSelector.vue';
-import { TaskStatusEnum, type Tag, type TaskStatus } from '@/features/task/types/task.types';
+import { type TaskFormData } from '@/features/task/types/task.types';
 import Input from '@/components/ui/input/Input.vue';
-
-interface ChecklistItem {
-  text: string;
-  isCompleted: boolean;
-  position: number;
-}
-
-interface FormData {
-  title: string;
-  description: string;
-  priorityLabel: string;
-  status: TaskStatus;
-  assignees: string[];
-  tags: Tag[];
-  checklist: ChecklistItem[];
-  startDate?: Date;
-  dueDate?: Date;
-}
+import { statusLabels } from '../../variables/status';
+import { priorityLabels } from '../../variables/priority';
 
 interface Props {
-  modelValue: FormData;
-  priorityLabels: readonly string[];
+  modelValue: TaskFormData;
 }
 
 const props = defineProps<Props>();
 const emit = defineEmits<{
-  (e: 'update:modelValue', value: FormData): void;
+  (e: 'update:modelValue', value: TaskFormData): void;
 }>();
 
-const statusOptions = [
-  { value: TaskStatusEnum.ACTIVE, label: 'Активная' },
-  { value: TaskStatusEnum.BLOCKED, label: 'Заблокирована' },
-  { value: TaskStatusEnum.ARCHIVED, label: 'Архивная' },
-] as const;
-
-const updateField = <K extends keyof FormData>(field: K, value: FormData[K]) => {
+const updateField = <K extends keyof TaskFormData>(field: K, value: TaskFormData[K]) => {
   emit('update:modelValue', {
     ...props.modelValue,
     [field]: value,
@@ -66,8 +43,8 @@ const priority = computed({
 });
 
 const status = computed({
-  get: () => props.modelValue.status,
-  set: (value) => updateField('status', value),
+  get: () => props.modelValue.statusLabel,
+  set: (value) => updateField('statusLabel', value),
 });
 
 const tags = computed({
@@ -101,14 +78,14 @@ const dates = computed({
 </script>
 
 <template>
-  <div class="space-y-4">
+  <div class="space-y-4 p-0.5">
     <!-- Title -->
     <div>
       <Input
         v-model="title"
         type="text"
         placeholder="Название "
-        class="modal-input focus:outline-none focus:ring-2 focus:ring-ring"
+        class="modal-input w-[70%] focus:outline-none focus:ring-2 focus:ring-ring"
         required
       />
     </div>
@@ -118,29 +95,28 @@ const dates = computed({
       <Textarea
         v-model="description"
         placeholder="Описание"
-        class="modal-input focus:outline-none focus:ring-2 focus:ring-ring"
+        class="modal-input w-[70%] focus:outline-none focus:ring-2 focus:ring-ring"
       />
     </div>
 
     <!-- Priority -->
-    <div class="space-y-1">
+    <div class="space-y-1 w-[35%]">
       <p class="text-sm text-muted-foreground">Приоритет</p>
-      <Select
+      <SelectTaskForm
         v-model="priority"
         :items="priorityLabels"
-        class="w-full"
+        class="flex-1"
         placeholder="Выберите приоритет..."
       />
     </div>
 
     <!-- Status -->
-    <div class="space-y-1">
+    <div class="space-y-1 w-[35%]">
       <p class="text-sm text-muted-foreground">Статус</p>
-      <Select
+      <SelectTaskForm
         v-model="status"
-        :items="statusOptions.map((opt) => opt.label)"
-        :item-values="statusOptions.map((opt) => opt.value)"
-        class="w-full"
+        :items="statusLabels"
+        class="flex-1"
         placeholder="Выберите статус..."
       />
     </div>
@@ -168,8 +144,4 @@ const dates = computed({
   </div>
 </template>
 
-<style scoped lang="scss">
-.modal-input {
-  margin-bottom: 15px;
-}
-</style>
+<style scoped lang="scss"></style>

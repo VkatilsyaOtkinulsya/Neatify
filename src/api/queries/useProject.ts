@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { BoardService } from '../services/board.service';
 import type { Board, BoardColumn } from '@/features/board/types/project.types';
-import { computed, type Ref } from 'vue';
+import { computed, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
 
 export const boardKeys = {
   all: ['boards'] as const,
@@ -22,23 +22,23 @@ export function useWorkspaceBoards(id: Ref<string>) {
   });
 }
 
-export function useBoardDetail(workspaceId: string, boardId: string) {
+export function useProjectDetail(
+  workspaceId: MaybeRefOrGetter<string>,
+  boardId: MaybeRefOrGetter<string>
+) {
   const queryClient = useQueryClient();
 
   return useQuery({
-    queryKey: boardKeys.detail(boardId),
-    queryFn: () => BoardService.getById(boardId),
-
+    queryKey: computed(() => boardKeys.detail(toValue(boardId))),
+    queryFn: () => BoardService.getById(toValue(boardId)),
     initialData: () => {
-      const boards = queryClient.getQueryData<Board[]>(boardKeys.byWorkspace(workspaceId));
-      return boards?.find((b) => b.id === boardId);
+      const boards = queryClient.getQueryData<Board[]>(boardKeys.byWorkspace(toValue(workspaceId)));
+      return boards?.find((b) => b.id === toValue(boardId));
     },
-
     initialDataUpdatedAt: () =>
-      queryClient.getQueryState(boardKeys.byWorkspace(workspaceId))?.dataUpdatedAt,
-
+      queryClient.getQueryState(boardKeys.byWorkspace(toValue(workspaceId)))?.dataUpdatedAt,
     staleTime: 30 * 1000,
-    enabled: !!boardId,
+    enabled: computed(() => !!toValue(boardId)),
   });
 }
 

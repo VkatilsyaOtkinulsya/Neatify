@@ -1,27 +1,25 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { computed, defineAsyncComponent, ref } from 'vue';
+import { computed, defineAsyncComponent } from 'vue';
 
 import Column from './Column.vue';
 import ColumnsList from './ColumnsList.vue';
 import AddColumnButton from './AddColumnButton.vue';
 import Loader from '@/components/ui/loader/Loader.vue';
 
-import { useBoard } from '../composables/useBoard';
-import { useCreateTask } from '@/api/queries/useTasks';
-import { useUpdateColumn } from '@/api/queries/useBoard';
-import type { Task } from '@/features/task/types/task.types';
-import { showNotification } from '@/shared/lib/utils/error-handler';
+import { useBoardActions, useBoardData } from '../composables/useBoard';
+import { useUpdateColumn } from '@/api/queries/useProject';
+import type { BoardColumn } from '../types/project.types';
+import { useBoardTasks } from '../composables/useBoardTasks';
+import { useTaskModal } from '../composables/useTaskModal';
 
-const TaskFormModal = defineAsyncComponent(() => import('@/features/task/components/TaskModal/TaskFormModal.vue'));
+const TaskFormModal = defineAsyncComponent(
+  () => import('@/features/task/components/TaskModal/TaskModal.vue')
+);
 
 const route = useRoute();
 const boardId = route.params.projectId as string;
 const workspaceId = route.params.workspaceId as string;
-
-const showModal = ref(false);
-const currentColumnId = ref<string>('');
-const currentTaskId = ref<string>('');
 
 const {
   project: board,
@@ -29,38 +27,27 @@ const {
   isLoadingBoard,
   isLoadingTasks,
   isError,
-  createBoardColumn,
-  moveTask,
-  moveColumn,
-} = useBoard(workspaceId, boardId);
-
-const editTask = computed(() => tasksData.value?.tasks.find((task) => task.id = currentTaskId.value))
-const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
-
-const { mutate: createTask, isPending } = useCreateTask(boardId);
+} = useBoardData(workspaceId, boardId);
+const { createBoardColumn, moveTask, moveColumn } = useBoardActions(boardId);
+const { create, update, isPending } = useBoardTasks(boardId)
 const { mutate: updateColumnMutation } = useUpdateColumn(boardId);
 
+const {
+  showModal,
+  currentColumnId,
+  editingTask,
+  openCreate,
+  openEdit,
+  close
+} = useTaskModal()
+
+
+const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
+
+const canAddTask = (column: BoardColumn) =>
+  column.taskLimit === null || (tasksByColumn.value[column._id]?.length ?? 0) < column.taskLimit;
 
 // ---------- UI actions ----------
-
-const openTaskModal = (columnId: string) => {
-  currentColumnId.value = columnId;
-  showModal.value = true;
-};
-
-const handleCreateTask = (data: Partial<Task>) => {
-  createTask(
-    { ...data, boardId },
-    {
-      onSettled: () => {
-        showModal.value = false;
-      },
-      onError: () => {
-        showNotification('Ошибка создания задачи', 'error');
-      }
-    }
-  );
-};
 
 const handleCreateColumn = (title: string) => {
   const nextPosition = board.value?.columns.length ?? 0;
@@ -73,7 +60,7 @@ const handleCreateColumn = (title: string) => {
   });
 };
 
-const handleUpdateColumn = (payload: { columnId: string; data: Partial<Task> }) => {
+const handleUpdateColumn = (payload: { columnId: string; data: Partial<BoardColumn> }) => {
   updateColumnMutation({ columnId: payload.columnId, data: payload.data });
 };
 
@@ -102,8 +89,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
 
     <div v-else-if="isError">Error loading board</div>
 
-    <div v-else-if="board && tasksData" class="h-full" >
-
+    <div v-else-if="board && tasksData" class="h-full">
       <ColumnsList :columns="board.columns" :board-id="boardId" @column-drop="handleColumnDrop">
         <template #column="{ column }">
           <Column
@@ -111,23 +97,22 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
             :color="column.color"
             :tasks="tasksByColumn[column._id] || []"
             @task-drop="handleTaskDrop"
-            @add-task="openTaskModal"
             @update-column="handleUpdateColumn"
-            @edit-task="openTaskModal"
+            @edit-task="openEdit"
           >
             <template #add-task-button>
-            <button
-              v-if="column.taskLimit != (tasksByColumn[column._id]?.length ?? 0)""
-              id="add-task-button"
-              @click="openTaskModal(column._id)"
-              class="add-task__button"
-            >
-              <div class="add-icon"></div>
-              <p>{{ isPending ? 'Создается...' : 'Добавить задачу' }} </p>
-            </button>
+              <button
+                v-if="canAddTask(column)"
+                id="add-task-button"
+                @click="openCreate(column._id)"
+                class="add-task__button"
+              >
+                <div class="add-icon"></div>
+                <p>{{ isPending ? 'Создается...' : 'Добавить задачу' }}</p>
+              </button>
 
-            <p v-else class="align-center text-red-600">лимит задач</p>
-          </template>
+              <p v-else class="align-center text-red-600">лимит задач</p>
+            </template>
           </Column>
         </template>
 
@@ -139,10 +124,11 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
       <Teleport to="body">
         <TaskFormModal
           :is-visible="showModal"
-          :column-id="currentColumnId"
-          :task-data="editTask"
-          @create="handleCreateTask"
-          @close="showModal = false"
+          :column-id="editingTask ? editingTask.columnId : currentColumnId"
+          :task-data="editingTask"
+          @create="(data) => create(data, close)"
+          @update="({id, data}) => update(id, data, close)"
+          @close="close"
         />
       </Teleport>
     </div>

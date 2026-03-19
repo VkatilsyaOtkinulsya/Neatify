@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/Main/Home.vue'),
       },
       {
-        path: '/spaces/:workspaceId',
+        path: 'spaces/:workspaceId',
         component: () => import('@/pages/Spaces/WorkspaceLayout.vue'),
         props: true,
         meta: { requiresAuth: true },
@@ -43,13 +43,19 @@ const routes: RouteRecordRaw[] = [
           },
           {
             path: ':projectId',
-            name: 'project-details',
-            component: () => import('@/modules/Project/components/ProjectDetails.vue'),
+            component: () => import('@/modules/Project/ProjectDetails.vue'),
             children: [
               {
                 path: '',
-                name: 'default',
-                redirect: 'board',
+                redirect: (to) => ({
+                  name: 'review',
+                  params: to.params,
+                }),
+              },
+              {
+                path: 'review',
+                name: 'review',
+                component: () => import('@/modules/Review/Review.vue'),
               },
               {
                 path: 'board',
@@ -57,14 +63,9 @@ const routes: RouteRecordRaw[] = [
                 component: () => import('@/features/board/components/Board.vue'),
               },
               {
-                path: 'review',
-                name: 'review',
-                component: () => import('@/modules/Dashboard/components/Review.vue'),
-              },
-              {
                 path: 'table',
                 name: 'table',
-                component: () => import('@/modules/Table/components/Table.vue'),
+                component: () => import('@/modules/Table/Table.vue'),
               },
             ],
           },

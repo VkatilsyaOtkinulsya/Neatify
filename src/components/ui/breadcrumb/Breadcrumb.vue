@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useBoardDetail } from '@/api/queries/useBoard';
+import { useProjectDetail } from '@/api/queries/useProject';
 import type { Workspace } from '@/features/workspace/types/workspace.types';
 import { computed, inject, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -9,7 +9,6 @@ interface BreadCrumbItem {
   title: string;
   path?: string;
   disabled?: boolean;
-  query?: any;
 }
 
 const route = useRoute();
@@ -17,35 +16,36 @@ const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
 
-const { data: project } = useBoardDetail(workspaceId.value, projectId.value);
+const { data: project } = useProjectDetail(workspaceId.value, projectId.value);
 
 const workspace = inject<Ref<Workspace | undefined>>('workspace');
 
-
+interface BreadCrumbItem {
+  name: string;
+  title: string;
+  path?: string;
+  disabled?: boolean;
+}
 
 const breadcrumbs = computed(() => {
   const crumbs: BreadCrumbItem[] = [];
 
-
-  if (route.params.workspaceId  && workspace?.value) {
+  if (route.params.workspaceId && workspace?.value) {
     crumbs.push({
       name: 'workspace',
-      title: (workspace.value.title as string) || 'Workspace',
+      title: workspace.value.title || 'Workspace',
       path: `/spaces/${route.params.workspaceId}/projects`,
-      disabled: false,
     });
   }
 
-  if (route.params.projectId  && project.value) {
-      
-      crumbs.push({
-        name: 'project',
-        title: (route.query.title as string) || 'Workspace',
-        path: `/spaces/${route.params.workspaceId}/${route.params.projectId}/tasks`,
-        disabled: false,
-      });
-  
-  };
+  if (route.params.projectId && project.value) {
+    crumbs.push({
+      name: 'project',
+      // ✅ берём из данных, не из query
+      title: project.value.title || 'Project',
+      path: `/spaces/${route.params.workspaceId}/${route.params.projectId}/tasks`,
+    });
+  }
 
   if (route.meta?.crumb) {
     crumbs.push({
@@ -54,6 +54,7 @@ const breadcrumbs = computed(() => {
       disabled: true,
     });
   }
+
   return crumbs;
 });
 </script>
@@ -73,7 +74,7 @@ const breadcrumbs = computed(() => {
         <router-link
           v-if="crumb.path && index < breadcrumbs.length - 1 && !crumb.disabled"
           :to="crumb.path"
-          class="breadcrumb-link""
+          class="breadcrumb-link"
         >
           {{ crumb.title }}
         </router-link>

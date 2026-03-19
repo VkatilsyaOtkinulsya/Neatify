@@ -5,7 +5,7 @@ import AddProjectModal from '@/components/ui/modal/AddProjectModal.vue';
 import EditableTitle from '@/components/ui/title/EditableTitle.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useWorkspaceBoards } from '@/api/queries/useBoard';
+import { useWorkspaceBoards } from '@/api/queries/useProject';
 
 const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
@@ -23,7 +23,7 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
       <template v-for="(project, index) in boards" :key="'project-' + index">
         <router-link
           :to="{
-            name: 'project-details',
+            name: 'review',
             params: { workspaceId: workspaceId, projectId: project.id },
           }"
         >
@@ -68,7 +68,7 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
   .projects-list {
     display: flex;
     flex-direction: column;
-    padding: 8px 10px 10px;
+    padding: 8px 10px 10px 20px;
 
     a {
       text-decoration: none;

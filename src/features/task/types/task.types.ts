@@ -1,26 +1,39 @@
-export const TaskPriority = {
-  LOW: 'low',
-  MEDIUM: 'medium',
-  HIGH: 'high',
-  URGENT: 'urgent',
-} as const;
+import { type PriorityLabel } from '../variables/priority';
+import { type StatusLabel } from '../variables/status';
+import { type TaskPriority as TaskPriorityType } from '../variables/priority.enum';
+import { type TaskStatus } from '../variables/status.enum';
 
-export type TaskPriority = (typeof TaskPriority)[keyof typeof TaskPriority];
+export type TaskCardData = Pick<
+  Task,
+  'id' | 'boardId' | 'tags' | 'priority' | 'assignees' | 'dueDate' | 'isOverdue'
+> & {
+  checklist: {
+    total: number;
+    completed: number;
+  } | null;
+  attachment: number; // кастомное поле
+};
 
-export const TaskStatusEnum = {
-  ACTIVE: 'active',
-  BLOCKED: 'blocked',
-  ARCHIVED: 'archived',
-} as const;
+export type SafeProfile = {
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  avatar: string;
+};
 
-export type TaskStatus = (typeof TaskStatusEnum)[keyof typeof TaskStatusEnum];
+export interface ChecklistItemInput {
+  text: string;
+  isCompleted: boolean;
+  completedAt?: Date | null;
+  position: number;
+}
 
 // Интерфейсы для вложенных документов
 export interface ChecklistItem {
   _id: string;
   text: string;
   isCompleted: boolean;
-  completedAt: Date | null;
+  completedAt?: Date | null;
   position: number;
 }
 
@@ -89,7 +102,7 @@ export interface Task {
   assignees: string[];
   creator: string;
 
-  priority: TaskPriority;
+  priority: TaskPriorityType;
   status: TaskStatus;
 
   estimate?: TaskEstimate;
@@ -120,4 +133,37 @@ export interface Task {
   isCompleted: boolean;
   checklistProgress: number;
   totalTimeSpent: number;
+}
+
+export interface TaskFormData {
+  title: string;
+  description: string;
+  priorityLabel: PriorityLabel;
+  statusLabel: StatusLabel;
+  assignees: string[];
+  tags: Tag[];
+  checklist: ChecklistItemInput[];
+  startDate?: Date;
+  dueDate?: Date;
+}
+
+export interface TaskPayloadBase {
+  title: string;
+  description?: string;
+  priority: TaskPriorityType;
+  status: TaskStatus;
+  tags: Tag[];
+  assignees: string[];
+  checklist: ChecklistItemInput[];
+  startDate?: Date;
+  dueDate?: Date;
+}
+
+export interface CreateTaskPayload extends TaskPayloadBase {
+  creator: string;
+  columnId: string;
+}
+
+export interface UpdateTaskPayload extends TaskPayloadBase {
+  taskId: string;
 }

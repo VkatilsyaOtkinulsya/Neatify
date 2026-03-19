@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import { Plus } from 'lucide-vue-next';
-import { onMounted, ref } from 'vue';
+import { CircleUser, Plus } from 'lucide-vue-next';
+import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import Select from '@/components/ui/select/Select.vue';
-import { defineStore } from 'pinia';
+import {
+  Select,
+  SelectContent,
+  SelectTrigger,
+  SelectValue,
+  SelectItem,
+} from '@/components/ui/select';
+import { useUsersStore } from '@/shared/stores/users.store';
+import { computed } from 'vue';
 
 const props = defineProps<{
   modelValue: string[];
@@ -14,15 +21,9 @@ const emits = defineEmits<{
   (e: 'update:modelValue', value: string[]): void;
 }>();
 
-const usersStore = defineStore('users', {});
-const users = ref<Array<{ id: string; name: string }>>([]);
-const selectedUserId = ref<string>('');
+const { users } = useUsersStore();
 
-// onMounted(async () => {
-//
-//   await usersStore.fetchUsers();
-//   users.value = usersStore.users.map((u) => ({ id: u.id, name: u.name }));
-// });
+const selectedUserId = ref<string>('');
 
 const addAssignee = () => {
   if (!selectedUserId.value) return;
@@ -40,8 +41,18 @@ const removeAssignee = (userId: string) => {
 };
 
 const getUserName = (userId: string): string => {
-  return users.value.find((u) => u.id === userId)?.name || userId;
+  const user = users.find((u) => u.userId === userId.toString());
+  return user?.profile?.displayName ?? '';
 };
+
+const availableAssignees = computed(() => {
+  return users
+    .filter((user) => !props.modelValue.includes(String(user.userId)))
+    .map((user) => ({
+      value: String(user.userId),
+      label: user.profile?.displayName || user.userId,
+    }));
+});
 </script>
 
 <template>
@@ -52,6 +63,7 @@ const getUserName = (userId: string): string => {
         :key="userId"
         class="flex items-center gap-1 rounded-md bg-secondary px-2 py-1 text-sm"
       >
+        <CircleUser />
         {{ getUserName(userId) }}
         <button @click="removeAssignee(userId)" class="text-muted-foreground hover:text-foreground">
           ✕
@@ -60,24 +72,31 @@ const getUserName = (userId: string): string => {
     </div>
 
     <PopoverTrigger as-child>
-      <Button variant="outline" :class="'w-70 justify-start text-left font-normal'">
+      <Button variant="outline" :class="'w-[45%] justify-start text-left font-normal'">
         <Plus class="mr-2 h-4 w-4" />
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-auto p-0">
-      <!-- Add assignee -->
-      <div class="flex gap-2">
-        <Select
-          v-model="selectedUserId"
-          :items="users.map((u) => u.name)"
-          :item-values="users.map((u) => u.id)"
-          class="flex-1"
-          placeholder="Выберите исполнителя..."
-        />
+    <PopoverContent class="w-full p-0 z-9999">
+      <div class="flex w-full gap-1">
+        <Select v-model="selectedUserId" class="flex-1">
+          <SelectTrigger>
+            <SelectValue placeholder="Выберите исполнителя..." />
+          </SelectTrigger>
+
+          <SelectContent class="z-9999">
+            <SelectItem
+              v-for="user in availableAssignees"
+              :key="user.value"
+              :value="String(user.value)"
+            >
+              {{ user.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
         <button
           @click="addAssignee"
           :disabled="!selectedUserId"
-          class="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition"
+          class="flex flex-1 h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition"
         >
           +
         </button>

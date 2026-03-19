@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TaskService } from '../services/task.service';
-import type { Task } from '@/features/task/types/task.types';
+import type { ChecklistItemInput, Task, TaskPayloadBase } from '@/features/task/types/task.types';
+
+export type CreateTaskPayload = Omit<Partial<Task>, 'checklist'> & {
+  checklist?: ChecklistItemInput[];
+};
 
 export const taskKeys = {
   all: ['tasks'] as const,
@@ -21,12 +25,8 @@ export function useCreateTask(boardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<Task>): Promise<Task> => {
-      if (data.boardId === undefined) {
-        throw new Error('boardId is required to create a task');
-      }
-
-      return TaskService.createInBoard(data.boardId, data);
+    mutationFn: (data: CreateTaskPayload): Promise<Task> => {
+      return TaskService.createInBoard(boardId, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
@@ -34,13 +34,72 @@ export function useCreateTask(boardId: string) {
   });
 }
 
+export const useUpdateTask = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, data }: { id: string; data: TaskPayloadBase }) =>
+      TaskService.update(id, data),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+    },
+  });
+};
+
 export function useDeleteTask(boardId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (taskId: string) => TaskService.delete(taskId, true).then(() => boardId),
+    mutationFn: (taskId: string) => TaskService.delete(taskId, true).then(() => boardId), // true, перманентное удаление
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
+    },
+  });
+}
+
+export function useCompleteTask(boardId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (taskId: string) => TaskService.complete(taskId),
+
+    onMutate: async (taskId) => {
+      await queryClient.cancelQueries({
+        queryKey: taskKeys.byBoard(boardId),
+      });
+
+      const previousTasks = queryClient.getQueryData(taskKeys.byBoard(boardId));
+
+      queryClient.setQueryData(taskKeys.byBoard(boardId), (old: any) => {
+        if (!old) return old;
+
+        const newTasksByColumn = Object.fromEntries(
+          Object.entries(old.tasksByColumn).map(([columnId, tasks]: any) => [
+            columnId,
+            tasks.filter((t: any) => t.id !== taskId),
+          ])
+        );
+
+        return {
+          ...old,
+          tasksByColumn: newTasksByColumn,
+        };
+      });
+
+      return { previousTasks };
+    },
+
+    onError: (_err, _taskId, context) => {
+      if (context?.previousTasks) {
+        queryClient.setQueryData(taskKeys.byBoard(boardId), context.previousTasks);
+      }
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({
+        queryKey: taskKeys.byBoard(boardId),
+      });
     },
   });
 }

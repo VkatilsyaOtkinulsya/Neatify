@@ -10,6 +10,7 @@ import { badgeVariants } from '.';
 const props = defineProps<
   PrimitiveProps & {
     variant?: BadgeVariants['variant'];
+    rounded?: BadgeVariants['rounded'];
     class?: HTMLAttributes['class'];
     color: string;
   }

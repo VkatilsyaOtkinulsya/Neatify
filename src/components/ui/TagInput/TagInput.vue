@@ -48,19 +48,19 @@ const remove = (i: number) => {
     </div>
 
     <!-- Controls -->
-    <div class="flex gap-2">
+    <div class="flex w-[60%] gap-2">
       <input
         v-model="text"
         @keydown.enter.prevent="add"
         placeholder="Добавить тег..."
-        class="h-10 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+        class="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
       />
 
-      <input type="color" v-model="color" class="h-10 w-10 cursor-pointer rounded-md border p-1" />
+      <input type="color" v-model="color" class="h-9 w-9 cursor-pointer rounded-md border p-1" />
 
       <button
         @click="add"
-        class="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition"
+        class="flex h-9 w-9 items-center justify-center rounded-md bg-primary text-primary-foreground hover:bg-primary/90 transition"
       >
         +
       </button>

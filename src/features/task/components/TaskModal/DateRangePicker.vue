@@ -62,7 +62,7 @@ const dueDateMin = computed(() => startDateValue.value ?? defaultPlaceholder);
       <Button
         variant="outline"
         :class="
-          cn('w-70 justify-start text-left font-normal', !startDateValue && 'text-muted-foreground')
+          cn('w-50 justify-start text-left font-normal', !startDateValue && 'text-muted-foreground')
         "
       >
         <CalendarIcon class="mr-2 h-4 w-4" />
@@ -71,9 +71,10 @@ const dueDateMin = computed(() => startDateValue.value ?? defaultPlaceholder);
         }}
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-auto p-0">
+    <PopoverContent class="w-auto p-0 z-[9999]" :to="'body'">
       <Calendar
         v-model="startDateValue"
+        :placeholder="startDateValue"
         :initial-focus="true"
         :default-placeholder="defaultPlaceholder"
         layout="month-and-year"
@@ -86,16 +87,17 @@ const dueDateMin = computed(() => startDateValue.value ?? defaultPlaceholder);
       <Button
         variant="outline"
         :class="
-          cn('w-70 justify-start text-left font-normal', !dueDateValue && 'text-muted-foreground')
+          cn('w-50 justify-start text-left font-normal', !dueDateValue && 'text-muted-foreground')
         "
       >
         <CalendarIcon class="mr-2 h-4 w-4" />
         {{ dueDateValue ? df.format(dueDateValue.toDate(getLocalTimeZone())) : 'Выберите дату' }}
       </Button>
     </PopoverTrigger>
-    <PopoverContent class="w-auto p-0">
+    <PopoverContent class="w-auto p-0 z-[9999]">
       <Calendar
         v-model="dueDateValue"
+        :placeholder="dueDateValue"
         :initial-focus="true"
         :min-value="dueDateMin"
         layout="month-and-year"

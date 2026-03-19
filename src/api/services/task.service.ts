@@ -1,11 +1,15 @@
-import { buildUrl, createApiService } from '../client/api.factory';
+import { createApiService } from '../client/api.factory';
 import axiosApiInstance from '../api';
-import type { Task } from '@/features/task/types/task.types';
+import type { Task, TaskPayloadBase } from '@/features/task/types/task.types';
 import type { BoardTasksResponse } from '../types/api.types';
+import type { CreateTaskPayload } from '../queries/useTasks';
+import { buildUrl } from '@/shared/lib/utils/buildUrl';
 
-const BASE_URL = import.meta.env.VITE_API_TASKS_URL;
+const BASE_URL = import.meta.env.VITE_API_TASKS_URL as string;
 
-const baseService = createApiService<Task>(BASE_URL);
+export const baseService = createApiService<Task, TaskPayloadBase, Partial<TaskPayloadBase>>(
+  BASE_URL
+);
 
 export const TaskService = {
   ...baseService,
@@ -16,15 +20,21 @@ export const TaskService = {
     return response.data;
   },
 
+  async createInBoard(boardId: string, data: CreateTaskPayload): Promise<Task> {
+    const url = buildUrl(BASE_URL, 'boards/:boardId/tasks', { boardId });
+    const response = await axiosApiInstance.post(url, data);
+    return response.data;
+  },
+
   async delete(taskId: string, permanent?: boolean) {
     const url = buildUrl(BASE_URL, `:taskId${permanent ? '?permanent=true' : ''}`, { taskId });
     const response = await axiosApiInstance.delete(url);
     return response.data;
   },
 
-  async createInBoard(boardId: string, data: Partial<Task>): Promise<Task> {
-    const url = buildUrl(BASE_URL, 'boards/:boardId/tasks', { boardId });
-    const response = await axiosApiInstance.post(url, data);
+  async complete(taskId: string): Promise<Task> {
+    const url = buildUrl(BASE_URL, ':taskId/complete', { taskId });
+    const response = await axiosApiInstance.patch(url);
     return response.data;
   },
 

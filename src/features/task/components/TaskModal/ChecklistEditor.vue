@@ -6,131 +6,200 @@ import type { ChecklistItem } from '../../types/task.types';
 import Input from '@/components/ui/input/Input.vue';
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue';
 
-interface ListItem {
+// Внутренний тип — элемент может быть как с _id (при редактировании), так и без (при создании)
+type AnyChecklistItem = ChecklistItem | Omit<ChecklistItem, '_id'>;
+
+// Стабильный локальный идентификатор для работы внутри компонента
+interface InternalItem {
+  _localId: string;
   text: string;
-  isCompleted?: boolean;
-  completedAt?: Date | null;
+  isCompleted: boolean;
+  completedAt: Date | null;
   position: number;
+  _id?: string; // сохраняем если пришёл с сервера
 }
 
 const props = defineProps<{
-  modelValue: ChecklistItem[] | [];
+  modelValue: AnyChecklistItem[];
 }>();
 
 const emits = defineEmits<{
-  (e: 'update:modelValue', value: Omit<ChecklistItem, '_id'>[]): void;
+  (e: 'update:modelValue', value: AnyChecklistItem[]): void;
 }>();
 
-const isEditingChecklist = ref(false);
-const selectedTask = ref<string | null>(null);
+// Конвертируем входящий массив во внутренний формат с локальными id
+const toInternal = (items: AnyChecklistItem[]): InternalItem[] =>
+  items.map((item, index) => ({
+    _localId: '_id' in item && item._id ? item._id : `local-${index}-${Date.now()}`,
+    text: item.text,
+    isCompleted: item.isCompleted ?? false,
+    completedAt: item.completedAt ?? null,
+    position: item.position,
+    _id: '_id' in item ? item._id : undefined,
+  }));
 
-const itemData = ref<ListItem>({
-  text: '',
-  isCompleted: false,
-  completedAt: null,
-  position: props.modelValue.length,
-});
+// Конвертируем обратно для эмита — сохраняем _id если был
+const toExternal = (items: InternalItem[]): AnyChecklistItem[] =>
+  items.map(({ _localId, _id, ...rest }) => (_id ? { ...rest, _id } : rest));
+
+const isEditingChecklist = ref(false);
+const editingLocalId = ref<string | null>(null);
+const editingText = ref('');
+
+const newItemText = ref('');
+const newItemCompleted = ref(false);
+
+const startCreating = () => {
+  isEditingChecklist.value = true;
+  newItemText.value = '';
+  newItemCompleted.value = false;
+};
+
+const cancelCreating = () => {
+  isEditingChecklist.value = false;
+  newItemText.value = '';
+  newItemCompleted.value = false;
+};
 
 const addChecklistItem = () => {
-  if (!itemData.value.text.trim()) return;
+  if (!newItemText.value.trim()) return;
 
-  const newItem = {
-    text: itemData.value.text.trim(),
-    isCompleted: itemData.value.isCompleted ?? false,
-    completedAt: itemData.value.isCompleted ? new Date() : null,
+  const newItem: AnyChecklistItem = {
+    text: newItemText.value.trim(),
+    isCompleted: newItemCompleted.value,
+    completedAt: newItemCompleted.value ? new Date() : null,
     position: props.modelValue.length,
   };
 
   emits('update:modelValue', [...props.modelValue, newItem]);
 
-  itemData.value = {
-    text: '',
-    isCompleted: false,
-    completedAt: null,
-    position: props.modelValue.length,
-  };
+  // Сбрасываем поле, но остаёмся в режиме добавления
+  newItemText.value = '';
+  newItemCompleted.value = false;
 };
 
-const startCreating = () => {
-  isEditingChecklist.value = true;
+const startEditing = (item: InternalItem) => {
+  editingLocalId.value = item._localId;
+  editingText.value = item.text;
 };
 
-const editTask = (taskId: string) => {
-  selectedTask.value = taskId;
-};
+const finishEditing = (localId: string) => {
+  if (!editingText.value.trim()) {
+    cancelEditing();
+    return;
+  }
 
-const cancelCreating = () => {
-  isEditingChecklist.value = false;
-  itemData.value = {
-    text: '',
-    isCompleted: false,
-    completedAt: null,
-    position: 0,
-  };
-};
-
-const removeChecklistItem = (taskId: string) => {
-  emits(
-    'update:modelValue',
-    props.modelValue.filter((item) => item._id !== taskId)
+  const internal = toInternal(props.modelValue);
+  const updated = internal.map((item) =>
+    item._localId === localId ? { ...item, text: editingText.value.trim() } : item
   );
+
+  emits('update:modelValue', toExternal(updated));
+  editingLocalId.value = null;
+  editingText.value = '';
+};
+
+const cancelEditing = () => {
+  editingLocalId.value = null;
+  editingText.value = '';
+};
+
+const toggleItem = (localId: string) => {
+  const internal = toInternal(props.modelValue);
+  const updated = internal.map((item) =>
+    item._localId === localId
+      ? {
+          ...item,
+          isCompleted: !item.isCompleted,
+          completedAt: !item.isCompleted ? new Date() : null,
+        }
+      : item
+  );
+  emits('update:modelValue', toExternal(updated));
+};
+
+const removeItem = (localId: string) => {
+  const internal = toInternal(props.modelValue);
+  const filtered = internal
+    .filter((item) => item._localId !== localId)
+    .map((item, index) => ({ ...item, position: index })); // пересчитываем позиции
+
+  emits('update:modelValue', toExternal(filtered));
 };
 
 const isEmptyChecklist = computed(() => !props.modelValue.length);
+const internalItems = computed(() => toInternal(props.modelValue));
 </script>
 
 <template>
-  <div class="w-full">
+  <div class="w-full space-y-2">
+    <!-- Список существующих элементов -->
     <div v-if="!isEmptyChecklist" class="flex flex-col gap-2">
-      <p>Чек-лист</p>
-
       <div
-        v-for="item in modelValue"
-        :key="item._id"
+        v-for="item in internalItems"
+        :key="item._localId"
         class="flex items-center gap-2 rounded-md bg-secondary px-2 py-1 text-sm"
       >
-        <input type="checkbox" :checked="item.isCompleted" />
-        {{ item.text }}
-        <button
-          @click="editTask(item._id)"
-          class="text-muted-foreground hover:text-foreground"
-          :disabled="!!selectedTask"
-        >
-          edit
-        </button>
-        <button
-          @click="removeChecklistItem(item._id)"
-          class="text-muted-foreground hover:text-foreground"
-        >
-          ✕
-        </button>
-      </div>
-    </div>
+        <Checkbox :model-value="item.isCompleted" @update:model-value="toggleItem(item._localId)" />
 
-    <div v-if="isEditingChecklist" class="flex flex-col gap-2">
-      <div class="checklist-item">
-        <Checkbox v-model="itemData.isCompleted" />
-
+        <!-- Режим редактирования строки -->
         <Input
-          @keydown.esc="cancelCreating"
-          @keydown.enter.prevent="addChecklistItem"
-          v-model="itemData.text"
+          v-if="editingLocalId === item._localId"
+          :model-value="editingText"
+          @update:model-value="editingText = $event as string"
+          @keydown.enter.prevent="finishEditing(item._localId)"
+          @keydown.esc="cancelEditing"
+          @blur="finishEditing(item._localId)"
+          class="flex-1"
+          autofocus
         />
+        <span
+          v-else
+          class="flex-1"
+          :class="{ 'line-through text-muted-foreground': item.isCompleted }"
+        >
+          {{ item.text }}
+        </span>
 
-        <button @click="cancelCreating" class="text-muted-foreground hover:text-foreground">
+        <button
+          v-if="editingLocalId !== item._localId"
+          @click="startEditing(item)"
+          class="text-muted-foreground hover:text-foreground"
+        >
+          ✎
+        </button>
+        <button
+          @click="removeItem(item._localId)"
+          class="text-muted-foreground hover:text-foreground"
+        >
           ✕
         </button>
       </div>
     </div>
 
+    <!-- Форма добавления нового элемента -->
+    <div v-if="isEditingChecklist" class="flex items-center gap-2">
+      <Checkbox v-model="newItemCompleted" />
+      <Input
+        v-model="newItemText"
+        placeholder="Текст пункта"
+        class="flex-1"
+        @keydown.enter.prevent="addChecklistItem"
+        @keydown.esc="cancelCreating"
+        autofocus
+      />
+      <button @click="cancelCreating" class="text-muted-foreground hover:text-foreground">✕</button>
+    </div>
+
+    <!-- Кнопка добавления -->
     <Button
-      v-if="isEmptyChecklist || !isEditingChecklist"
+      v-if="!isEditingChecklist"
       variant="outline"
-      :class="'w-70 justify-start text-left font-normal'"
+      class="w-70 justify-start text-left font-normal"
       @click="startCreating"
     >
       <Plus class="mr-2 h-4 w-4" />
-      {{ props.modelValue.length ? 'Добавить элемент' : 'Добавить чек-лист' }}
+      {{ isEmptyChecklist ? 'Добавить чек-лист' : 'Добавить элемент' }}
     </Button>
   </div>
 </template>

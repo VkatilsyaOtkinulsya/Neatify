@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed, ref, nextTick, watch } from 'vue';
 import { useBoardDragStore } from '../boardDrag.store';
-import TaskItem from '@/features/task/components/TaskItem.vue';
-import type { Task } from '@/features/task/types/task.types';
+import TaskCard from '@/features/task/components/TaskCard.vue';
+import type { Task, TaskCardData } from '@/features/task/types/task.types';
 import type { BoardColumn } from '../types/project.types';
 import Input from '@/components/ui/input/Input.vue';
 
@@ -25,7 +25,7 @@ const emits = defineEmits<{
   'update-column': [payload: { columnId: string; data: Partial<BoardColumn> }];
   'column-drag-start': [payload: { columnId: string }];
   'column-drag-end': [];
-  'edit-task': [taskId: string];
+  'edit-task': [taskData: Task];
 }>();
 
 const dragStore = useBoardDragStore();
@@ -35,8 +35,12 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const orderedTasks = computed(() => {
   const tasks = props.tasks;
   if (!tasks.length) return tasks;
-  return tasks.slice().sort((a, b) => a.position - b.position);
+  return tasks
+    .filter((t: Task) => t.completedAt === null)
+    .slice()
+    .sort((a, b) => a.position - b.position);
 });
+
 const isEmpty = computed(() => orderedTasks.value.length === 0);
 
 const isEditingColumnTitle = ref(false);
@@ -125,6 +129,21 @@ const handleColumnDragEnd = () => {
   emits('column-drag-end');
 };
 
+const taskCardData = (task: Task): TaskCardData => ({
+  id: task.id,
+  boardId: task.boardId,
+  tags: task.tags,
+  priority: task.priority,
+  checklist: task.checklist.length ? {
+    total: task.checklist.length,
+    completed: task.checklist.filter((t) => !t.isCompleted).length
+  } : null,
+  assignees: task.assignees,
+  dueDate: task.dueDate,
+  isOverdue: task.isOverdue,
+  attachment: task.attachments.length,
+});
+
 watch(
   () => props.column.title,
   (v) => {
@@ -140,12 +159,12 @@ watch(
   <div class="column-container">
     <div class="column" :style="{ backgroundColor: color }">
       <div
-        class="column-header cursor-grab active:cursor-grabbing hover:cursor-pointer"
+        class="h-10 px-2 pt-2 cursor-grab active:cursor-grabbing hover:cursor-pointer"
         :draggable="!isEditingColumnTitle"
         @dragstart="handleColumnDragStart"
         @dragend="handleColumnDragEnd"
       >
-        <p @mousedown.stop @click.stop="startEditColumnTitle" v-if="!isEditingColumnTitle">
+        <p v-if="!isEditingColumnTitle" @mousedown.stop @click.stop="startEditColumnTitle" class="pl-3 pt-1.5 text-sm">
           {{ editedColumnTitle }}
         </p>
         <Input
@@ -169,21 +188,17 @@ watch(
           />
 
           <template v-for="(task, index) in orderedTasks" :key="task.id">
-            <TaskItem
+            <TaskCard
               data-task-item
-              :id="task.id"
-              :board-id="task.boardId"
-              :tags="task.tags"
-              :priority="task.priority"
-              :checklist="task.checklist"
+              :task="taskCardData(task)"
               @drag-start="dragStore.startTaskDrag(task.id, props.column._id)"
               @drag-end="dragStore.clear"
-              @click="emits('edit-task', task.id)"
+              @click="emits('edit-task', task)"
             >
               <template #editable_title>
                 {{ task.title }}
               </template>
-            </TaskItem>
+            </TaskCard>
 
             <div
               class="drop-zone"
@@ -215,22 +230,14 @@ watch(
   height: 100%;
   max-height: 100%;
   flex-shrink: 0;
-  overflow: hidden;
   border: 1px solid #333333;
   border-radius: 0.75rem;
   box-shadow: 0px 0px 12px 3px rgba(0, 0, 0, 0.15);
   overflow: hidden;
 
-  .column-header {
-    height: 40px;
-    padding-top: 8px;
-    padding-left: 12px;
-  }
-
   .column-content {
     flex: 1 1 auto;
-    margin-top: -8px;
-    padding: 0.5rem 0.25rem 0;
+    padding: 0.25rem 0.25rem 0;
 
     .tasks-list {
       display: flex;
