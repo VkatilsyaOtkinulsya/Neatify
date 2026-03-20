@@ -1,14 +1,21 @@
 <script setup lang="ts">
-import { useProjectDetail } from '@/api/queries/useProject';
+import { useProjectDetails } from '@/api/queries/useProject';
 import Button from '@/components/ui/button/Button.vue';
 import Popover from '@/components/ui/popover/Popover.vue';
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue';
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue';
-import type { IBoardMemberWithProfile } from '@/shared/types/user.types';
+import type { IBoardMemberSafe } from '@/shared/types/user.types';
 import { Bolt, Info, UserRoundPlus } from 'lucide-vue-next';
+import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
-defineProps<{ users: IBoardMemberWithProfile[] }>();
+type Administration = 'owner' | 'admin';
+
+const props = defineProps<{ users: IBoardMemberSafe[] }>();
+
+const emit = defineEmits<{
+  'delete-project': [id: string];
+}>();
 
 const route = useRoute();
 const projectId = route.params.projectId as string;
@@ -22,7 +29,20 @@ const links = [
   { name: 'table', label: 'Список' },
 ] as const;
 
-const { data: projectData } = useProjectDetail(workspaceId, projectId);
+const { data: projectData } = useProjectDetails(workspaceId, projectId);
+
+const isAdmin = (role: string): role is Administration => {
+  return role === 'owner' || role === 'admin';
+};
+
+const adminstration = computed(() => {
+  return props.users
+    .filter((u) => isAdmin(u.role))
+    .map((u) => ({
+      name: u.profile.displayName,
+      role: u.role,
+    }));
+});
 </script>
 
 <template>
@@ -66,8 +86,9 @@ const { data: projectData } = useProjectDetail(workspaceId, projectId);
             <div class="grid gap-4">
               <div class="space-y-2">
                 <h4 class="font-medium leading-none">Администраторы доски</h4>
-                <p class="text-sm text-muted-foreground">Иван Романов</p>
-                <p class="text-sm text-muted-foreground">{{ projectData?.ownerId }}</p>
+                <p v-for="a in adminstration" class="text-sm text-muted-foreground">
+                  {{ a.name }} - {{ a.role }}
+                </p>
               </div>
               <div class="space-y-2">
                 <h4 class="font-medium leading-none">Описание</h4>
@@ -88,6 +109,13 @@ const { data: projectData } = useProjectDetail(workspaceId, projectId);
               <Button variant="outline" class="flex space-y-2">
                 <user-round-plus class="m-0" />
                 <p class="font-medium leading-none">Добавить участника</p>
+              </Button>
+              <Button
+                variant="outline"
+                @click="emit('delete-project', projectId)"
+                class="bg-red-600 hover:bg-red-700"
+              >
+                <p class="font-medium leading-none text-white">Удалить проект</p>
               </Button>
             </div>
           </PopoverContent>

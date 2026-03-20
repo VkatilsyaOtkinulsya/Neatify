@@ -14,11 +14,37 @@ import Textarea from '../textarea/Textarea.vue';
 import Button from '../button/Button.vue';
 import Input from '../selfmade-input/Input.vue';
 
-const name = ref('');
+const title = ref<string>('');
+const titleError = ref('');
+const description = ref<string>('');
+const isCreateDialogOpen = ref(false);
+
+defineProps<{
+  isCreatePending: boolean;
+}>();
+
+const emit = defineEmits<{
+  'create-project': [data: { title: string; description: string }];
+}>();
+
+const handleCreate = () => {
+  if (!title.value.trim()) {
+    titleError.value = 'Введите название проекта';
+    return;
+  }
+
+  titleError.value = '';
+
+  emit('create-project', { title: title.value, description: description.value });
+  isCreateDialogOpen.value = false;
+
+  title.value = '';
+  description.value = '';
+};
 </script>
 
 <template>
-  <Dialog>
+  <Dialog :open="isCreateDialogOpen" @update:open="isCreateDialogOpen = $event">
     <DialogTrigger class="w-full">
       <div
         variant="ghost"
@@ -37,17 +63,23 @@ const name = ref('');
         <div class="grid w-full gap-1.5">
           <Input
             class="modal-input"
-            :modelValue="name"
+            :class="{ 'border-red-500': titleError }"
+            v-model="title"
             type="text"
             placeholder="Название проекта"
             required
           />
-          <Textarea class="modal-input" placeholder="Описание" />
+          <p v-if="titleError" class="text-sm text-red-500">
+            {{ titleError }}
+          </p>
+          <Textarea class="modal-input" v-model="description" placeholder="Описание" />
         </div>
       </DialogHeader>
 
       <DialogFooter>
-        <Button type="submit">Создать</Button>
+        <Button type="submit" @click="handleCreate" :disabled="!title.trim() || isCreatePending"
+          >Создать</Button
+        >
       </DialogFooter>
     </DialogContent>
   </Dialog>

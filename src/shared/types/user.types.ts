@@ -17,7 +17,14 @@ export interface Profile {
   avatar?: string;
 }
 
-export interface IBoardMemberWithProfile {
+export interface IBoardMemberApi {
+  userId: string;
+  role: MemberRole;
+  addedAt: Date;
+  profile: SafeProfile | null;
+}
+
+export interface IBoardMemberSafe {
   userId: string;
   role: MemberRole;
   addedAt: Date;

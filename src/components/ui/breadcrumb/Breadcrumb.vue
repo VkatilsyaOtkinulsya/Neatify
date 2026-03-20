@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useProjectDetail } from '@/api/queries/useProject';
+import { useProjectDetails } from '@/api/queries/useProject';
 import type { Workspace } from '@/features/workspace/types/workspace.types';
 import { computed, inject, type Ref } from 'vue';
 import { useRoute } from 'vue-router';
@@ -16,7 +16,7 @@ const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
 
-const { data: project } = useProjectDetail(workspaceId.value, projectId.value);
+const { data: project } = useProjectDetails(workspaceId.value, projectId.value);
 
 const workspace = inject<Ref<Workspace | undefined>>('workspace');
 

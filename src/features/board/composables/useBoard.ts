@@ -1,9 +1,5 @@
-import {
-  useProjectDetail,
-  useCreateBoard,
-  useCreateColumn,
-  useMoveColumn,
-} from '@/api/queries/useProject';
+import { useCreateColumn, useMoveColumn } from '@/api/queries/useBoard';
+import { useProjectDetails } from '@/api/queries/useProject';
 import { useProjectTasks, useMoveTask } from '@/api/queries/useTasks';
 import { computed } from 'vue';
 
@@ -12,7 +8,7 @@ export function useBoardData(workspaceId: string, boardId: string) {
     data: project,
     isLoading: isLoadingBoard,
     isError,
-  } = useProjectDetail(workspaceId, boardId);
+  } = useProjectDetails(workspaceId, boardId);
   const { data: tasksData, isLoading: isLoadingTasks } = useProjectTasks(boardId);
 
   return { project, tasksData, isLoadingBoard, isLoadingTasks, isError };
@@ -49,7 +45,7 @@ export function useProject(workspaceId: string, boardId: string) {
     data: project,
     isLoading: isLoadingBoard,
     isError,
-  } = useProjectDetail(workspaceId, boardId);
+  } = useProjectDetails(workspaceId, boardId);
 
   const {
     data: tasksData,
@@ -57,7 +53,6 @@ export function useProject(workspaceId: string, boardId: string) {
     isError: isErrorTasks,
   } = useProjectTasks(boardId);
 
-  const { mutate: createBoard } = useCreateBoard();
   const { mutate: createBoardColumn } = useCreateColumn(boardId);
   const { mutate: moveTaskMutation } = useMoveTask(boardId);
   const { mutate: moveColumnMutation } = useMoveColumn(boardId);
@@ -80,7 +75,6 @@ export function useProject(workspaceId: string, boardId: string) {
     title: computed(() => project.value?.title),
     project,
 
-    createBoard,
     createBoardColumn,
 
     isLoadingBoard,

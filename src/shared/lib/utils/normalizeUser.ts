@@ -1,4 +1,4 @@
-import type { IBoardMemberWithProfile, MemberRole } from '@/shared/types/user.types';
+import type { IBoardMemberApi, MemberRole } from '@/shared/types/user.types';
 
 type SafeProfile = {
   displayName: string;
@@ -14,17 +14,23 @@ interface SafeUser {
   profile: SafeProfile;
 }
 
-export const normalizeUser = (user: IBoardMemberWithProfile): SafeUser => {
+export const normalizeUser = (user: IBoardMemberApi): SafeUser => {
+  const profile = user.profile;
+
+  const displayName =
+    profile?.displayName ??
+    [profile?.firstName, profile?.lastName].filter(Boolean).join(' ') ??
+    'Удалённый пользователь';
   return {
     userId: user.userId,
     role: user.role,
     addedAt: new Date(user.addedAt),
 
     profile: {
-      displayName: user.profile.displayName ?? `${user.profile.firstName} ${user.profile.lastName}`,
-      firstName: user.profile.firstName ?? '',
-      lastName: user.profile.lastName ?? '',
-      avatar: user.profile.avatar ?? '',
+      displayName,
+      firstName: profile?.firstName ?? '',
+      lastName: profile?.lastName ?? '',
+      avatar: profile?.avatar ?? '',
     },
   };
 };

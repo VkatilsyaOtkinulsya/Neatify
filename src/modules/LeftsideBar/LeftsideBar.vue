@@ -31,7 +31,7 @@ defineProps<Props>();
 const Modal = defineAsyncComponent(() => import('@/components/ui/modal/Modal.vue'));
 
 const authStore = useAuthStore();
-const { mutate } = useCreateWorkspace();
+const create = useCreateWorkspace();
 
 const isOpened = ref(false);
 const showModal = ref(false);
@@ -47,7 +47,7 @@ const logout = () => {
 };
 
 const handleCreateWorkspace = (data: { title: string; description?: string }) => {
-  mutate(data, {
+  create.mutate(data, {
     onSettled: () => {
       showModal.value = false;
     },

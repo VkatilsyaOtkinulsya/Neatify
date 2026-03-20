@@ -1,16 +1,16 @@
 import { defineStore } from 'pinia';
 import { handleApiError } from '@/shared/lib/utils/error-handler';
-import type { IBoardMemberWithProfile } from '../types/user.types';
+import type { IBoardMemberSafe } from '../types/user.types';
 import { BoardService } from '@/api/services/board.service';
 import { normalizeUser } from '../lib/utils/normalizeUser';
 
 interface ProjectUsersState {
-  users: IBoardMemberWithProfile[];
+  users: IBoardMemberSafe[];
 }
 
 export const useUsersStore = defineStore('project users', {
   state: (): ProjectUsersState => ({
-    users: [] as IBoardMemberWithProfile[],
+    users: [] as IBoardMemberSafe[],
   }),
 
   getters: {

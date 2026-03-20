@@ -1,7 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { BoardService } from '../services/board.service';
-import type { Board, BoardColumn } from '@/features/board/types/project.types';
-import { computed, toValue, type MaybeRefOrGetter, type Ref } from 'vue';
+import type { Board } from '@/features/board/types/project.types';
+import { computed, toValue, unref, type MaybeRef, type MaybeRefOrGetter, type Ref } from 'vue';
+import { handleApiError, showNotification } from '@/shared/lib/utils/error-handler';
+import router from '@/router';
 
 export const boardKeys = {
   all: ['boards'] as const,
@@ -22,7 +24,7 @@ export function useWorkspaceBoards(id: Ref<string>) {
   });
 }
 
-export function useProjectDetail(
+export function useProjectDetails(
   workspaceId: MaybeRefOrGetter<string>,
   boardId: MaybeRefOrGetter<string>
 ) {
@@ -42,7 +44,7 @@ export function useProjectDetail(
   });
 }
 
-export function useCreateBoard() {
+export function useCreateProject() {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -57,7 +59,7 @@ export function useCreateBoard() {
       queryClient.setQueryData<Board[]>(boardKeys.byWorkspace(workspaceId), (old = []) => [
         ...old,
         {
-          _id: `temp-${Date.now()}`,
+          id: `temp-${Date.now()}`,
           ...data,
           createdAt: new Date(),
         } as Board,
@@ -76,75 +78,22 @@ export function useCreateBoard() {
   });
 }
 
-export function useCreateColumn(boardId: string) {
+export function useDeleteProject(workspaceId: MaybeRef<string>) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data: Partial<BoardColumn>) => BoardService.createBoardColumn(boardId, data),
-
-    onMutate: async (data) => {
-      await queryClient.cancelQueries({ queryKey: boardKeys.detail(boardId) });
-
-      const previousBoard = queryClient.getQueryData(boardKeys.detail(boardId));
-
-      queryClient.setQueryData<Board>(boardKeys.detail(boardId), (old) => {
-        if (!old) return old;
-
-        return {
-          ...old,
-          columns: [
-            ...old.columns,
-            {
-              _id: `temp-${Date.now()}`,
-              ...data,
-              createdAt: new Date(),
-            } as BoardColumn,
-          ],
-        };
-      });
-
-      return { previousBoard };
-    },
-
-    onError: (_, __, context) => {
-      if (context?.previousBoard) {
-        queryClient.setQueryData(boardKeys.detail(boardId), context.previousBoard);
-      }
-    },
-
+    mutationFn: (projectId: string) => BoardService.delete(projectId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: boardKeys.detail(boardId) });
+      queryClient.invalidateQueries({ queryKey: boardKeys.byWorkspace(unref(workspaceId)) });
+      showNotification('Проект удален', 'success');
+
+      router.push(`/spaces/${unref(workspaceId)}/projects`);
+    },
+
+    onError: (err) => {
+      handleApiError(err);
     },
   });
 }
 
-export function useMoveColumn(boardId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ columnId, position }: { columnId: string; position: number }) =>
-      BoardService.moveColumn(boardId, columnId, { position }),
-
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: boardKeys.detail(boardId) });
-      await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
-    },
-  });
-}
-
-export function useUpdateColumn(boardId: string) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ columnId, data }: { columnId: string; data: Partial<BoardColumn> }) => {
-      return BoardService.updateColumn(boardId, columnId, data);
-    },
-
-    onSuccess: async () => {
-      await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
-    },
-  });
-}
 //  обновление
-
-//  удаление

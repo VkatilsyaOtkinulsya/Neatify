@@ -8,10 +8,10 @@ import AddColumnButton from './AddColumnButton.vue';
 import Loader from '@/components/ui/loader/Loader.vue';
 
 import { useBoardActions, useBoardData } from '../composables/useBoard';
-import { useUpdateColumn } from '@/api/queries/useProject';
 import type { BoardColumn } from '../types/project.types';
 import { useBoardTasks } from '../composables/useBoardTasks';
 import { useTaskModal } from '../composables/useTaskModal';
+import { useUpdateColumn } from '@/api/queries/useBoard';
 
 const TaskFormModal = defineAsyncComponent(
   () => import('@/features/task/components/TaskModal/TaskModal.vue')
@@ -29,18 +29,10 @@ const {
   isError,
 } = useBoardData(workspaceId, boardId);
 const { createBoardColumn, moveTask, moveColumn } = useBoardActions(boardId);
-const { create, update, isPending } = useBoardTasks(boardId)
+const { create, update, isPending } = useBoardTasks(boardId);
 const { mutate: updateColumnMutation } = useUpdateColumn(boardId);
 
-const {
-  showModal,
-  currentColumnId,
-  editingTask,
-  openCreate,
-  openEdit,
-  close
-} = useTaskModal()
-
+const { showModal, currentColumnId, editingTask, openCreate, openEdit, close } = useTaskModal();
 
 const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
 
@@ -127,7 +119,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
           :column-id="editingTask ? editingTask.columnId : currentColumnId"
           :task-data="editingTask"
           @create="(data) => create(data, close)"
-          @update="({id, data}) => update(id, data, close)"
+          @update="({ id, data }) => update(id, data, close)"
           @close="close"
         />
       </Teleport>

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/select/';
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { useProjectDetail } from '@/api/queries/useProject';
+import { useProjectDetails } from '@/api/queries/useProject';
 import {
   buildPeriods,
   type Period,
@@ -26,7 +26,7 @@ const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);
 const workspaceId = route.params.workspaceId as string;
 
-const { data: projectData } = useProjectDetail(workspaceId, projectId.value);
+const { data: projectData } = useProjectDetails(workspaceId, projectId);
 
 const mode = ref<PeriodMode>('sprint');
 const periods = ref<Period[]>([]);
@@ -58,9 +58,8 @@ const selectedKey = computed({
     selectedPeriod.value = periods.value.find((p) => p.fromStr === key) ?? null;
   },
 });
-
-const from = computed(() => selectedPeriod.value!.fromStr);
-const to = computed(() => selectedPeriod.value!.toStr);
+const from = computed(() => selectedPeriod.value?.fromStr ?? '');
+const to = computed(() => selectedPeriod.value?.toStr ?? '');
 
 const { data, isLoading, isLoadingError } = useReviewMetrics(projectId, from, to);
 </script>
