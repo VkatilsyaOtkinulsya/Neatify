@@ -8,7 +8,7 @@ import { TaskPriorityMap } from '../types/priority.config';
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 import { CircleUser, Clock, Paperclip, SquareCheckBig } from 'lucide-vue-next';
 import type { TaskCardData } from '../types/task.types';
-import { df, formatDueDate } from '@/shared/lib/utils/formatDate';
+import { df } from '@/shared/lib/utils/formatDate';
 
 const props = defineProps<{
   task: TaskCardData;

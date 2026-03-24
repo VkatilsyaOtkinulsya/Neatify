@@ -1,7 +1,7 @@
 import { createApiService } from '@/api/client/api.factory';
 import type { Board, BoardColumn } from '../../features/board/types/project.types';
 import axiosApiInstance from '@/api/api';
-import type { IBoardMemberWithProfile } from '@/shared/types/user.types';
+import type { IBoardMemberApi } from '@/shared/types/user.types';
 import { buildUrl } from '@/shared/lib/utils/buildUrl';
 
 const BASE_URL = import.meta.env.VITE_API_B0ARDS_URL;
@@ -51,7 +51,7 @@ export const BoardService = {
     return response.data;
   },
 
-  async getProjectUsers(boardId: string): Promise<IBoardMemberWithProfile[]> {
+  async getProjectUsers(boardId: string): Promise<IBoardMemberApi[]> {
     const url = buildUrl(BASE_URL, ':boardId/members', { boardId });
     const response = await axiosApiInstance.get(url);
     return response.data;

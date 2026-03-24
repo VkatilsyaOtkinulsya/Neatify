@@ -35,9 +35,10 @@ const inputRef = ref<HTMLInputElement | null>(null);
 const orderedTasks = computed(() => {
   const tasks = props.tasks;
   if (!tasks.length) return tasks;
-  return tasks
-    .filter((t: Task) => t.completedAt === null)
-    .slice()
+
+  return props.tasks
+    .map((t) => ({ ...t }))
+    .filter((t) => t.completedAt === null)
     .sort((a, b) => a.position - b.position);
 });
 
@@ -130,17 +131,13 @@ const handleColumnDragEnd = () => {
 };
 
 const taskCardData = (task: Task): TaskCardData => ({
-  id: task.id,
-  boardId: task.boardId,
-  tags: task.tags,
-  priority: task.priority,
-  checklist: task.checklist.length ? {
-    total: task.checklist.length,
-    completed: task.checklist.filter((t) => !t.isCompleted).length
-  } : null,
-  assignees: task.assignees,
-  dueDate: task.dueDate,
-  isOverdue: task.isOverdue,
+  ...task,
+  checklist: task.checklist.length
+    ? {
+        total: task.checklist.length,
+        completed: task.checklist.filter((t) => !t.isCompleted).length,
+      }
+    : null,
   attachment: task.attachments.length,
 });
 
@@ -164,7 +161,12 @@ watch(
         @dragstart="handleColumnDragStart"
         @dragend="handleColumnDragEnd"
       >
-        <p v-if="!isEditingColumnTitle" @mousedown.stop @click.stop="startEditColumnTitle" class="pl-3 pt-1.5 text-sm">
+        <p
+          v-if="!isEditingColumnTitle"
+          @mousedown.stop
+          @click.stop="startEditColumnTitle"
+          class="pl-3 pt-1.5 text-sm"
+        >
           {{ editedColumnTitle }}
         </p>
         <Input
@@ -187,7 +189,7 @@ watch(
             @drop="() => handleDrop(0)"
           />
 
-          <template v-for="(task, index) in orderedTasks" :key="task.id">
+          <template v-for="(task, index) in orderedTasks" :key="task.id + task.dueDate">
             <TaskCard
               data-task-item
               :task="taskCardData(task)"

@@ -1,6 +1,8 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/vue-query';
 import { TaskService } from '../services/task.service';
 import type { ChecklistItemInput, Task, TaskPayloadBase } from '@/features/task/types/task.types';
+import type { BoardTasksResponse } from '../types/api.types';
+import { mergeTask } from '@/features/task/utils/mergeTask';
 
 export type CreateTaskPayload = Omit<Partial<Task>, 'checklist'> & {
   checklist?: ChecklistItemInput[];
@@ -16,6 +18,7 @@ export function useProjectTasks(boardId: string) {
     queryKey: taskKeys.byBoard(boardId),
     queryFn: () => TaskService.getBoardTasks(boardId),
     staleTime: 60 * 1000,
+    structuralSharing: false,
   });
 
   return { data, isLoading, isError, refetch };
@@ -34,15 +37,59 @@ export function useCreateTask(boardId: string) {
   });
 }
 
-export const useUpdateTask = () => {
+export const useUpdateTask = (boardId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, data }: { id: string; data: TaskPayloadBase }) =>
       TaskService.update(id, data),
 
+    onMutate: async ({ id, data }) => {
+      await queryClient.cancelQueries({ queryKey: taskKeys.byBoard(boardId) });
+
+      const previousData = queryClient.getQueryData<BoardTasksResponse>(taskKeys.byBoard(boardId));
+      if (!previousData) return;
+
+      const previousDataSnapshot = structuredClone(previousData);
+
+      let targetColumnId: string | null = null;
+      for (const [columnId, tasks] of Object.entries(previousData.tasksByColumn)) {
+        if (tasks.some((task) => task.id === id)) {
+          targetColumnId = columnId;
+          break;
+        }
+      }
+
+      if (!targetColumnId) return { previousData: previousDataSnapshot };
+
+      const updatedColumnTasks = previousData.tasksByColumn[targetColumnId].map((task) => {
+        if (task.id === id) {
+          const updated = mergeTask(task, data);
+          return updated;
+        }
+
+        return task;
+      });
+
+      queryClient.setQueryData<BoardTasksResponse>(taskKeys.byBoard(boardId), {
+        ...previousData,
+        tasksByColumn: {
+          ...previousData.tasksByColumn,
+          [targetColumnId]: updatedColumnTasks,
+        },
+      });
+
+      return { previousData: previousDataSnapshot };
+    },
+
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
+    },
+
+    onError: (_err, _variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(taskKeys.byBoard(boardId), context.previousData);
+      }
     },
   });
 };

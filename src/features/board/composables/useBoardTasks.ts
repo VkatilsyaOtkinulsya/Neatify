@@ -9,7 +9,7 @@ import { showNotification } from '@/shared/lib/utils/error-handler';
 
 export function useBoardTasks(boardId: string) {
   const { mutate: createTask, isPending } = useCreateTask(boardId);
-  const updateTask = useUpdateTask();
+  const updateTask = useUpdateTask(boardId);
   const { mutate: deleteTaskFn, isPending: isPendingDelete } = useDeleteTask(boardId);
 
   const create = (data: CreateTaskPayload, onSuccess: () => void) => {
