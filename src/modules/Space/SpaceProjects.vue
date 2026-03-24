@@ -5,12 +5,19 @@ import AddProjectModal from '@/components/ui/modal/AddProjectModal.vue';
 import EditableTitle from '@/components/ui/title/EditableTitle.vue';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useWorkspaceBoards } from '@/api/queries/useBoard';
+import { useWorkspaceBoards } from '@/api/queries/useProject';
+import { useProject } from '@/features/project/composables/useProject';
 
 const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 
+const { createProject, isCreatePending } = useProject(workspaceId);
+
 const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspaceId);
+
+const handleCreateProject = (data: { title: string; description: string }) => {
+  createProject({ workspaceId: workspaceId.value, data });
+};
 </script>
 
 <template>
@@ -20,10 +27,10 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
     </div>
     <Loader v-if="isLoadingBoards" color="#fff" />
     <div v-else-if="boards" class="projects-list">
-      <template v-for="(project, index) in boards" :key="'project-' + index">
+      <template v-for="(project, index) in boards" :key="project.id">
         <router-link
           :to="{
-            name: 'project-tasks',
+            name: 'review',
             params: { workspaceId: workspaceId, projectId: project.id },
           }"
         >
@@ -42,7 +49,7 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
       <p>Пространство пустое</p>
     </div>
     <div class="projects-list_add-project">
-      <AddProjectModal />
+      <AddProjectModal @create-project="handleCreateProject" :is-create-pending="isCreatePending" />
     </div>
   </div>
 </template>
@@ -68,7 +75,7 @@ const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspac
   .projects-list {
     display: flex;
     flex-direction: column;
-    padding: 8px 10px 10px;
+    padding: 8px 10px 10px 20px;
 
     a {
       text-decoration: none;

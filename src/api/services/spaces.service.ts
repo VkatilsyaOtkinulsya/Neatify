@@ -1,6 +1,7 @@
 import type { Workspace } from '@/features/workspace/types/workspace.types';
 import axiosApiInstance from '@/api/api';
-import { buildUrl, createApiService } from '@/api/client/api.factory';
+import { createApiService } from '@/api/client/api.factory';
+import { buildUrl } from '@/shared/lib/utils/buildUrl';
 
 const BASE_URL = import.meta.env.VITE_API_WORKSPACES_URL;
 

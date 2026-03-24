@@ -30,7 +30,7 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/pages/Main/Home.vue'),
       },
       {
-        path: '/spaces/:workspaceId',
+        path: 'spaces/:workspaceId',
         component: () => import('@/pages/Spaces/WorkspaceLayout.vue'),
         props: true,
         meta: { requiresAuth: true },
@@ -42,9 +42,32 @@ const routes: RouteRecordRaw[] = [
             props: true,
           },
           {
-            path: ':projectId/tasks',
-            name: 'project-tasks',
-            component: () => import('@/features/board/components/Board.vue'),
+            path: ':projectId',
+            component: () => import('@/modules/Project/ProjectDetails.vue'),
+            children: [
+              {
+                path: '',
+                redirect: (to) => ({
+                  name: 'review',
+                  params: to.params,
+                }),
+              },
+              {
+                path: 'review',
+                name: 'review',
+                component: () => import('@/modules/Review/Review.vue'),
+              },
+              {
+                path: 'board',
+                name: 'board',
+                component: () => import('@/features/board/components/Board.vue'),
+              },
+              {
+                path: 'table',
+                name: 'table',
+                component: () => import('@/modules/Table/Table.vue'),
+              },
+            ],
           },
         ],
       },

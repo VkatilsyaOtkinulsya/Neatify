@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
+import { ref } from 'vue';
 
 interface Props {
   href: string;
@@ -10,6 +11,8 @@ interface Props {
   isButton?: boolean;
 }
 
+const elRef = ref<HTMLElement | null>(null);
+
 withDefaults(defineProps<Props>(), {
   isOpened: false,
   isButton: false,
@@ -17,7 +20,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <a :href="href" class="footer__item" aria-describedby="link-tooltip" tabindex="0">
+  <a ref="elRef" :href="href" class="footer__item">
     <template v-if="isButton">
       <button class="logout__button">
         <div class="icon-wrapper">
@@ -25,14 +28,26 @@ withDefaults(defineProps<Props>(), {
         </div>
         <p v-if="isOpened">{{ label }}</p>
       </button>
-      <Tooltip id="link-tooltip" :text="tooltipText" role="tooltip" position="right" />
+      <Tooltip
+        id="link-tooltip"
+        :text="tooltipText"
+        :target="elRef"
+        position="right"
+        :disabled="isOpened"
+      />
     </template>
     <template v-else>
       <div class="icon-wrapper">
         <slot name="icon"></slot>
       </div>
       <p v-if="isOpened">{{ label }}</p>
-      <Tooltip id="link-tooltip" :text="tooltipText" role="tooltip" position="right" />
+      <Tooltip
+        id="link-tooltip"
+        :text="tooltipText"
+        :target="elRef"
+        position="right"
+        :disabled="isOpened"
+      />
     </template>
   </a>
 </template>

@@ -31,10 +31,11 @@ defineProps<Props>();
 const Modal = defineAsyncComponent(() => import('@/components/ui/modal/Modal.vue'));
 
 const authStore = useAuthStore();
-const { mutate } = useCreateWorkspace();
+const create = useCreateWorkspace();
 
-const isOpened = ref(true);
+const isOpened = ref(false);
 const showModal = ref(false);
+const elRef = ref<HTMLElement | null>(null);
 
 const toggleSidebar = () => {
   isOpened.value = !isOpened.value;
@@ -46,7 +47,7 @@ const logout = () => {
 };
 
 const handleCreateWorkspace = (data: { title: string; description?: string }) => {
-  mutate(data, {
+  create.mutate(data, {
     onSettled: () => {
       showModal.value = false;
     },
@@ -65,22 +66,15 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
           <div v-if="isOpened" class="client__link-name">{{ displayName }}</div>
         </div>
         <div class="navigation__client-toggle">
-          <span
-            class="client__toggle-button"
-            @click="toggleSidebar"
-            aria-describedby="toggle-tooltip"
-            tabindex="0"
-          >
+          <span ref="elRef" class="client__toggle-button" @click="toggleSidebar">
             <ToggleIcon :isOpened />
           </span>
           <Tooltip
-            id="toggle-tooltip"
+            :target="elRef"
             :text="isOpened ? 'Свернуть боковую панель' : 'Развернуть боковую панель'"
-            role="tooltip"
-            position="custom"
-            :custom-position="{ left: isOpened ? '50%' : '210%' }"
-          >
-          </Tooltip>
+            position="right"
+            :disabled="isOpened"
+          ></Tooltip>
         </div>
       </a>
       <div class="navigation__sections">

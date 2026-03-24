@@ -17,9 +17,16 @@ export const badgeVariants = cva(
         outline:
           "text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
       },
+      rounded: {
+        none: "rounded-none",
+        sm: "rounded-sm",
+        xs: "rounded-xs",
+        full: "rounded-full",
+      },
     },
     defaultVariants: {
       variant: "default",
+      rounded: "sm",
     },
   },
 )

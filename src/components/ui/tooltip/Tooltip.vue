@@ -1,94 +1,140 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, onBeforeUnmount, nextTick, watch, computed, type Ref } from 'vue';
 
 interface Props {
-  text: string
-  position?: 'top' | 'bottom' | 'left' | 'right' | 'custom'
-  customPosition?: { [key: string]: string | number }
+  id?: string;
+  text: string;
+  target: HTMLElement | null | Ref<HTMLElement | null>;
+  position?: 'top' | 'bottom' | 'left' | 'right';
+  disabled?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  position: 'bottom',
-})
+  position: 'top',
+});
 
-const tooltipStyle = computed(() => {
-  if (props.position === 'custom' && props.customPosition) {
-    return props.customPosition
+const getEl = () => {
+  return (props.target as any)?.value ?? props.target;
+};
+
+const visible = ref(false);
+const x = ref(0);
+const y = ref(0);
+
+const updatePosition = async () => {
+  if (!props.target) return;
+  const el = getEl();
+
+  await nextTick();
+
+  const rect = el.getBoundingClientRect();
+
+  switch (props.position) {
+    case 'top':
+      x.value = rect.left + rect.width / 2;
+      y.value = rect.top - 8;
+      break;
+    case 'bottom':
+      x.value = rect.left + rect.width / 2;
+      y.value = rect.bottom + 8;
+      break;
+    case 'left':
+      x.value = rect.left - 8;
+      y.value = rect.top + rect.height / 2;
+      break;
+    case 'right':
+      x.value = rect.right + 8;
+      y.value = rect.top + rect.height / 2;
+      break;
   }
+};
 
-  const styles: { [key: string]: { [key: string]: string } } = {
-    top: {
-      top: '110%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-    },
-    bottom: {
-      bottom: '110%',
-      left: '50%',
-      transform: 'translateX(-50%)',
-    },
-    left: {
-      right: '110%',
-      top: '50%',
-      transform: 'translateY(-50%)',
-    },
-    right: {
-      left: '110%',
-      top: '50%',
-      transform: 'translateY(-50%)',
-    },
-  }
+const show = async () => {
+  visible.value = true;
+  await updatePosition();
+};
 
-  return styles[props.position] || styles.bottom
-})
+const hide = () => {
+  visible.value = false;
+};
+
+let cleanup: (() => void) | null = null;
+
+const attach = () => {
+  if (props.disabled) return null;
+  const el = getEl();
+
+  const onEnter = show;
+  const onLeave = hide;
+  const onMove = updatePosition;
+
+  el.addEventListener('mouseenter', onEnter);
+  el.addEventListener('mouseleave', onLeave);
+  el.addEventListener('mousemove', onMove);
+
+  cleanup = () => {
+    el.removeEventListener('mouseenter', onEnter);
+    el.removeEventListener('mouseleave', onLeave);
+    el.removeEventListener('mousemove', onMove);
+  };
+};
+
+const isActive = computed(() => !!props.target && !props.disabled);
+
+watch(
+  isActive,
+  (active) => {
+    cleanup?.();
+
+    if (!active) {
+      visible.value = false;
+      return;
+    }
+
+    attach();
+  },
+  { immediate: true }
+);
+
+onBeforeUnmount(() => {
+  cleanup?.();
+});
 </script>
 
 <template>
-  <span class="tooltip" role="tooltip" :style="tooltipStyle">{{ text }}</span>
+  <Teleport to="body">
+    <span
+      v-if="visible"
+      :id="id"
+      class="tooltip"
+      :style="{
+        top: y + 'px',
+        left: x + 'px',
+        transform:
+          position === 'top'
+            ? 'translate(-50%, -100%)'
+            : position === 'bottom'
+              ? 'translate(-50%, 0)'
+              : position === 'left'
+                ? 'translate(-100%, -50%)'
+                : 'translate(0, -50%)',
+      }"
+    >
+      {{ text }}
+    </span>
+  </Teleport>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .tooltip {
-  position: absolute;
-  top: 110%;
-  transform: translateX(-50%);
+  position: fixed;
   background: #333;
   color: #fff;
   padding: 5px 10px;
   border-radius: 4px;
   font-size: 12px;
   white-space: nowrap;
-  z-index: 100;
+  z-index: 9999;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-}
-
-.tooltip[position='top']::before {
-  border-top-color: #333;
-  bottom: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.tooltip[position='bottom']::before {
-  border-bottom-color: #333;
-  top: -10px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.tooltip[position='left']::before {
-  border-left-color: #333;
-  right: -10px;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-.tooltip[position='right']::before {
-  border-right-color: #333;
-  left: -10px;
-  top: 50%;
-  transform: translateY(-50%);
 }
 </style>

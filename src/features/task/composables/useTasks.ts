@@ -1,18 +1,18 @@
+import { useCreateTask } from '@/api/queries/useTasks';
 import type { Task } from '../types/task.types';
 
-export function useTasks() {
+export function useTasks(boardId: string) {
+  const { mutate: createTaskFn, isPending, error } = useCreateTask(boardId);
+
   const createTask = (data: Partial<Task>) => {
     if (!data) return;
 
-    const task = {
-      title: data.title,
-      description: data?.description,
-      creator: data.boardId,
-    };
-    return task;
+    createTaskFn(data);
   };
 
   return {
     createTask,
+    isPending,
+    error,
   };
 }

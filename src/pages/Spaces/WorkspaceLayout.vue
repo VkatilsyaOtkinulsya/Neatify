@@ -36,7 +36,6 @@ watch(workspaceId, (newId) => {
           <SpaceIcon class="mr-1" :color="'#000'" :size="18" />
           <Breadcrumb />
         </div>
-        <p class="text-sm leading-5">{{ workspace?.description }}</p>
       </div>
       <router-view />
     </div>

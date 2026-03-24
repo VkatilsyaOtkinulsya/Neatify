@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
+import { ref } from 'vue';
 
 interface Props {
   style?: string;
@@ -11,18 +12,15 @@ interface Props {
   index?: number;
 }
 
+const elRef = ref<HTMLElement | null>(null);
+
 withDefaults(defineProps<Props>(), {
   isOpened: false,
 });
 </script>
 
 <template>
-  <a
-    :href="'/space/' + workspace.id + '/projects'"
-    class="nav-item"
-    aria-describedby="link-tooltip"
-    tabindex="0"
-  >
+  <a ref="elRef" :href="'/space/' + workspace.id + '/projects'" class="nav-item">
     <div class="icon-wrapper">
       <slot name="icon"></slot>
     </div>
@@ -32,9 +30,9 @@ withDefaults(defineProps<Props>(), {
     <Tooltip
       id="link-tooltip"
       :text="workspace.name"
-      role="tooltip"
+      :target="elRef"
       position="right"
-      :custom-position="{ left: isOpened ? '50%' : '210%' }"
+      :disabled="isOpened"
     >
     </Tooltip>
   </a>
