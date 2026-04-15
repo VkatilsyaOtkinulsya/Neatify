@@ -1,7 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/vue-query';
 import { BoardService } from '../services/board.service';
 import { boardKeys } from './useProject';
-import type { Board, BoardColumn } from '@/features/board/types/project.types';
+import type { Board, BoardColumn } from '@/features/board/types/board.types';
+import { showNotification } from '@/shared/lib/utils/error-handler';
 
 export function useCreateColumn(boardId: string) {
   const queryClient = useQueryClient();
@@ -69,6 +70,22 @@ export function useUpdateColumn(boardId: string) {
 
     onSuccess: async () => {
       await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
+    },
+  });
+}
+
+export function useDeleteColumn(boardId: string) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (columnId: string) => {
+      return BoardService.deleteColumn(boardId, columnId);
+    },
+
+    onSuccess: async () => {
+      await queryClient.refetchQueries({ queryKey: boardKeys.detail(boardId) });
+
+      showNotification('Колонка успешно удалена', 'success');
     },
   });
 }

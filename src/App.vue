@@ -3,8 +3,8 @@ import { onMounted, ref, watch } from 'vue';
 import NotificationModal from '@/components/ui/modal/NotificationModal.vue';
 import { registerNotificationComponent } from '@/shared/lib/utils/error-handler';
 import { useCheckAuth } from './features/auth/composables/useCheckAuth';
-import type { NotificationComponent } from './shared/types/notification';
-import { useWorkspaceStore } from './shared/stores/spaces.store';
+import type { NotificationComponent } from '@/shared/types/notification';
+import { useWorkspaceStore } from '@/stores/spaces.store';
 
 const notificationRef = ref<NotificationComponent | null>(null);
 

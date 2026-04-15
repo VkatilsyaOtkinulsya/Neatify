@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue';
-import type { BoardColumn as ColumnType } from '../types/project.types';
+import type { BoardColumn as ColumnType } from '../types/board.types';
 import { useBoardDragStore } from '../boardDrag.store';
 import { useBoardScroll } from '../composables/useBoardScroll';
+import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
+import { inject } from 'vue';
 
 const props = defineProps<{
   columns: ColumnType[];
@@ -39,6 +41,9 @@ const handleDrop = (index: number) => {
   hoverIndex.value = null;
   dragStore.clear();
 };
+
+const permissionsCtx = inject(PERMISSIONS_KEY)!;
+const canAddColumn = computed(() => permissionsCtx.can('update_task'));
 </script>
 
 <template>
@@ -68,7 +73,7 @@ const handleDrop = (index: number) => {
       />
     </template>
 
-    <div class="add-column">
+    <div v-if="canAddColumn" class="add-column">
       <slot name="add-column"> </slot>
     </div>
   </div>

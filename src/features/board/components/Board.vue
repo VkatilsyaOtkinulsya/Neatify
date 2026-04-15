@@ -1,17 +1,28 @@
 <script setup lang="ts">
 import { useRoute } from 'vue-router';
-import { computed, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 
-import Column from './Column.vue';
+import Column from './Column/Column.vue';
 import ColumnsList from './ColumnsList.vue';
-import AddColumnButton from './AddColumnButton.vue';
+import AddColumnButton from './Column/AddColumnButton.vue';
 import Loader from '@/components/ui/loader/Loader.vue';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 import { useBoardActions, useBoardData } from '../composables/useBoard';
-import type { BoardColumn } from '../types/project.types';
+import type { BoardColumn } from '../types/board.types';
 import { useBoardTasks } from '../composables/useBoardTasks';
 import { useTaskModal } from '../composables/useTaskModal';
 import { useUpdateColumn } from '@/api/queries/useBoard';
+import type { Task } from '@/features/task/types/task.types';
 
 const TaskFormModal = defineAsyncComponent(
   () => import('@/features/task/components/TaskModal/TaskModal.vue')
@@ -21,6 +32,9 @@ const route = useRoute();
 const boardId = route.params.projectId as string;
 const workspaceId = route.params.workspaceId as string;
 
+const isDeleteDialogOpen = ref(false);
+const deletingColumnId = ref<string | null>(null);
+
 const {
   project: board,
   tasksData,
@@ -28,16 +42,27 @@ const {
   isLoadingTasks,
   isError,
 } = useBoardData(workspaceId, boardId);
-const { createBoardColumn, moveTask, moveColumn } = useBoardActions(boardId);
+const { createBoardColumn, deleteBoardColumn, moveTask, moveColumn } = useBoardActions(boardId);
 const { create, update, isPending } = useBoardTasks(boardId);
 const { mutate: updateColumnMutation } = useUpdateColumn(boardId);
 
 const { showModal, currentColumnId, editingTask, openCreate, openEdit, close } = useTaskModal();
 
-const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
+const tasksByColumn = computed<Record<string, Task[]>>(() => tasksData.value?.tasksByColumn ?? {});
+
+const activeTasksByColumn = computed(() => {
+  const result: Record<string, Task[]> = {};
+
+  for (const [colId, tasks] of Object.entries(tasksByColumn.value)) {
+    result[colId] = tasks.filter((t) => t.completedAt === null);
+  }
+
+  return result;
+});
 
 const canAddTask = (column: BoardColumn) =>
-  column.taskLimit === null || (tasksByColumn.value[column._id]?.length ?? 0) < column.taskLimit;
+  column.taskLimit === null ||
+  (activeTasksByColumn.value[column._id]?.length ?? 0) < column.taskLimit;
 
 // ---------- UI actions ----------
 
@@ -54,6 +79,20 @@ const handleCreateColumn = (title: string) => {
 
 const handleUpdateColumn = (payload: { columnId: string; data: Partial<BoardColumn> }) => {
   updateColumnMutation({ columnId: payload.columnId, data: payload.data });
+};
+
+const handleDeleteColumn = () => {
+  if (!deletingColumnId.value) return;
+
+  deleteBoardColumn(deletingColumnId.value);
+
+  isDeleteDialogOpen.value = false;
+  deletingColumnId.value = null;
+};
+
+const openDeleteDialog = (id: string) => {
+  deletingColumnId.value = id;
+  isDeleteDialogOpen.value = true;
 };
 
 // ---------- DnD intentions ----------
@@ -87,9 +126,10 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
           <Column
             :column="column"
             :color="column.color"
-            :tasks="tasksByColumn[column._id] || []"
+            :tasks="activeTasksByColumn[column._id] || []"
             @task-drop="handleTaskDrop"
             @update-column="handleUpdateColumn"
+            @delete-column="openDeleteDialog(column._id)"
             @edit-task="openEdit"
           >
             <template #add-task-button>
@@ -123,6 +163,24 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
           @close="close"
         />
       </Teleport>
+
+      <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Удалить колонку?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Это действие нельзя отменить. Колонка будет удалена навсегда.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+
+          <AlertDialogFooter>
+            <AlertDialogCancel>Отмена</AlertDialogCancel>
+            <AlertDialogAction @click="handleDeleteColumn" class="bg-red-600 hover:bg-red-700">
+              Удалить
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   </div>
 </template>

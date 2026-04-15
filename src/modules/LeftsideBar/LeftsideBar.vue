@@ -13,7 +13,7 @@ import {
   ToggleIcon,
 } from '@/components/icons/index.ts';
 import { defineAsyncComponent, ref } from 'vue';
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { useCreateWorkspace } from '@/api/queries/useWorkspace';
 
 interface Props {

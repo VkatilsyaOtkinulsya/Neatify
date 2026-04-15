@@ -2,7 +2,7 @@
 import LeftsideBar from '@/modules/LeftsideBar/LeftsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
 import { handleApiError } from '@/shared/lib/utils/error-handler';
-import { useWorkspaceStore } from '@/shared/stores/spaces.store';
+import { useWorkspaceStore } from '@/stores/spaces.store';
 
 const showLoader = ref(false);
 

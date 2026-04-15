@@ -14,7 +14,7 @@ import { Trash2 } from 'lucide-vue-next';
 import { useBoardData } from '@/features/board/composables/useBoard';
 import { computed, defineAsyncComponent, ref, TransitionGroup } from 'vue';
 import { useRoute } from 'vue-router';
-import { useUsersStore } from '@/shared/stores/users.store';
+import { useUsersStore } from '@/stores/users.store';
 import { storeToRefs } from 'pinia';
 import { useTaskModal } from '@/features/board/composables/useTaskModal';
 import { useBoardTasks } from '@/features/board/composables/useBoardTasks';

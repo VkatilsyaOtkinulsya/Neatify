@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import { computed } from 'vue';
 
 export function useCheckAuth() {

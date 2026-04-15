@@ -1,4 +1,4 @@
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import router from '@/router';
 import { handleErrorResponse } from '@/shared/lib/utils/error-handler';
@@ -51,6 +51,10 @@ axiosApiInstance.interceptors.response.use(
     const originalRequest = error.config as InternalAxiosRequestConfig & {
       _retry?: boolean;
     };
+
+    if (isPublic(originalRequest.url)) {
+      return Promise.reject(error);
+    }
 
     if (error.response.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;

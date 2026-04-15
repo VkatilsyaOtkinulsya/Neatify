@@ -3,7 +3,7 @@ import Footer from '@/components/Footer.vue';
 import Header from '@/components/Header.vue';
 
 import { useGreeting, useCurrentTime } from '@/shared/lib/utils/useGreetingDate';
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 
 const authStore = useAuthStore();
 const userName: string = `${authStore.userInfo.displayName}`;
