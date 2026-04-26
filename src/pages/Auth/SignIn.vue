@@ -73,5 +73,227 @@ const handleSubmit = async () => {
 </template>
 
 <style scoped lang="scss">
-@use './Auth.module';
+.auth-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100vh;
+  box-sizing: border-box;
+  background-color: rgb(241, 255, 239);
+}
+
+.auth__banner {
+  width: 38%;
+  max-width: 460px;
+  height: 100%;
+  background-color: #111012;
+  box-sizing: border-box;
+
+  .banner__content {
+    margin: 150px 10px 0 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+
+    .banner-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+
+      .logo-text {
+        font-size: 1.3125rem;
+        color: #ffffffe6;
+        font-weight: 500;
+      }
+    }
+    .banner-title {
+      font-family: 'Roboto', sans-serif;
+      color: #fff;
+      font-size: 2.5rem;
+    }
+  }
+}
+
+.form-wrapper {
+  display: flex;
+  max-width: 50%;
+  min-height: 410px;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  gap: 30px;
+  margin: 0 auto;
+  padding: 30px 10px;
+
+  box-sizing: border-box;
+  box-shadow: rgba(49, 94, 251, 0.4) 0px 10px 10px -10px;
+  border-radius: 15px;
+  background-color: #fff;
+
+  .form-wrapper__title {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 500;
+    font-size: 1.5rem;
+    pointer-events: none;
+  }
+
+  .auth-form {
+    width: 100%;
+    min-height: 150px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    transition: all 0.5s ease-in-out;
+    overflow: hidden;
+    padding: 0 40px;
+    box-sizing: border-box;
+
+    .auth-form__input {
+      width: 300px;
+      padding: 11px 14px;
+      border: 1px solid rgb(213, 215, 219);
+
+      border-radius: 6px;
+      box-sizing: border-box;
+
+      &:active {
+        background-color: rgb(240, 240, 240);
+        border: 1px solid rgb(37, 99, 235);
+      }
+      &:hover {
+        opacity: 0.8;
+        border: 1px solid rgb(196, 196, 196);
+      }
+    }
+
+    .auth-form__button {
+      min-width: 120px;
+      font-size: 14px;
+      padding: 11px 14px;
+      border: none;
+      border-radius: 57.5px;
+      background-color: #1867c0;
+      color: #fff;
+
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+  }
+
+  .ans-text {
+    width: 100%;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    a {
+      text-decoration: underline;
+    }
+
+    @media screen and (max-width: 768px) {
+      font-size: 14px;
+    }
+  }
+}
+
+.warn-message {
+  display: block;
+  height: auto;
+  text-align: center;
+  font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;
+  background-color: rgb(255, 244, 144);
+  border-left: 5px solid rgb(255, 155, 5);
+  color: rgb(255, 155, 5);
+  padding: 10px 5px;
+  border-radius: 4px;
+  text-wrap: wrap;
+  box-sizing: content-box;
+
+  animation: hideWarnMessage 1s ease-in-out;
+  animation-fill-mode: forwards;
+  animation-delay: 10s;
+}
+
+@keyframes hideWarnMessage {
+  0% {
+    transform: scaleY(1);
+  }
+  100% {
+    transform: scaleY(0);
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1200px) {
+  .form-wrapper {
+    max-width: 80%;
+  }
+}
+
+@media screen and (max-width: 960px) {
+  .auth__banner {
+    display: flex;
+  }
+  .form-wrapper {
+    max-width: 62%;
+
+    .warn-message {
+      font-size: 14px;
+    }
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .auth__banner {
+    justify-content: center;
+    .banner__content {
+      margin: 150px 0 0 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+
+      .banner-title {
+        font-size: 1.9rem;
+      }
+    }
+  }
+  .form-wrapper {
+    max-width: 85%;
+    min-height: 380px;
+
+    .auth-form {
+      padding: 0 20px 20px;
+    }
+  }
+}
+
+@media screen and (max-width: 640px) {
+  .auth__banner {
+    display: none;
+  }
+}
+
+@media (max-width: 576px) {
+  .form-wrapper {
+    max-width: 95%;
+    gap: 20px;
+
+    .form-wrapper__title {
+      font-size: 1.3rem;
+    }
+
+    .auth-form {
+      gap: 15px;
+
+      .auth-form__input {
+        width: 100%;
+        max-width: 300px;
+        padding: 10px 12px;
+      }
+    }
+  }
+}
 </style>

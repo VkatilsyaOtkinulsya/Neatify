@@ -3,6 +3,12 @@ import { BoardTemplatesEnum, MemberRoleEnum } from '@/shared/types/roles';
 type MemberRole = (typeof MemberRoleEnum)[keyof typeof MemberRoleEnum];
 type BoardTemplates = (typeof BoardTemplatesEnum)[keyof typeof BoardTemplatesEnum];
 
+export interface CreateProjectDto {
+  title: string;
+  description?: string;
+  isPersonal: boolean;
+}
+
 export interface Board {
   id: string;
   workspaceId: string;
@@ -14,6 +20,7 @@ export interface Board {
   settings: BoardSettings;
   ownerId: string;
   position: number;
+  isPersonal: boolean;
 
   createdAt: Date;
   updatedAt: Date;
@@ -44,6 +51,7 @@ export interface ProjectDetails {
   settings: ProjectSettings;
   ownerId: string;
   position: number;
+  isPersonal: boolean;
 
   createdAt: Date;
   updatedAt: Date;

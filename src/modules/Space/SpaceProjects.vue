@@ -7,6 +7,7 @@ import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 import { useWorkspaceBoards } from '@/api/queries/useProject';
 import { useProject } from '@/features/project/composables/useProject';
+import type { CreateProjectDto } from '@/features/board/types/board.types';
 
 const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
@@ -15,7 +16,7 @@ const { createProject, isCreatePending } = useProject(workspaceId);
 
 const { data: boards, isLoading: isLoadingBoards } = useWorkspaceBoards(workspaceId);
 
-const handleCreateProject = (data: { title: string; description: string }) => {
+const handleCreateProject = (data: CreateProjectDto) => {
   createProject({ workspaceId: workspaceId.value, data });
 };
 </script>

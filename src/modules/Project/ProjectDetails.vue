@@ -21,7 +21,7 @@ import { useProjectDetails } from '@/api/queries/useProject';
 import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
 import { usePermissions } from '@/shared/permissions/usePermissions';
 import { useAuthStore } from '@/stores/auth.store';
-import { useProjectSettings } from '@/features/project/composables/useProjectSettings';
+import { PROJECT_CONTEXT_KEY } from '@/shared/provideKeys/projectContextKey';
 
 const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);
@@ -38,6 +38,8 @@ const permissionsState = usePermissions(
   projectData,
   computed(() => authStore.userInfo!.id)
 );
+
+const isPersonal = computed(() => projectData.value?.isPersonal ?? false);
 
 const isDeleteDialogOpen = ref(false);
 
@@ -69,6 +71,10 @@ provide(PERMISSIONS_KEY, {
   can: permissionsState.can,
   canAny: permissionsState.canAny,
   canAll: permissionsState.canAll,
+});
+
+provide(PROJECT_CONTEXT_KEY, {
+  isPersonal: isPersonal.value,
 });
 </script>
 

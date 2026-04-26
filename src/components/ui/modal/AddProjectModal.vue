@@ -13,10 +13,12 @@ import { ref } from 'vue';
 import Textarea from '../textarea/Textarea.vue';
 import Button from '../button/Button.vue';
 import Input from '../selfmade-input/Input.vue';
+import type { CreateProjectDto } from '@/features/board/types/board.types';
 
 const title = ref<string>('');
 const titleError = ref('');
 const description = ref<string>('');
+const isPersonal = ref<boolean>(false);
 const isCreateDialogOpen = ref(false);
 
 defineProps<{
@@ -24,7 +26,7 @@ defineProps<{
 }>();
 
 const emit = defineEmits<{
-  'create-project': [data: { title: string; description: string }];
+  'create-project': [data: CreateProjectDto];
 }>();
 
 const handleCreate = () => {
@@ -35,11 +37,16 @@ const handleCreate = () => {
 
   titleError.value = '';
 
-  emit('create-project', { title: title.value, description: description.value });
+  emit('create-project', {
+    title: title.value,
+    description: description.value,
+    isPersonal: isPersonal.value,
+  });
   isCreateDialogOpen.value = false;
 
   title.value = '';
   description.value = '';
+  isPersonal.value = false;
 };
 </script>
 
@@ -73,6 +80,23 @@ const handleCreate = () => {
             {{ titleError }}
           </p>
           <Textarea class="modal-input" v-model="description" placeholder="Описание" />
+
+          <div class="project-type-selector">
+            <label class="project-type-option" :class="{ active: isPersonal }">
+              <input type="radio" v-model="isPersonal" :value="true" class="sr-only" />
+              <span class="radio-circle">
+                <span v-if="isPersonal" class="radio-dot"></span>
+              </span>
+              Личный проект
+            </label>
+            <label class="project-type-option" :class="{ active: !isPersonal }">
+              <input type="radio" v-model="isPersonal" :value="false" class="sr-only" />
+              <span class="radio-circle">
+                <span v-if="!isPersonal" class="radio-dot"></span>
+              </span>
+              Командный проект
+            </label>
+          </div>
         </div>
       </DialogHeader>
 
@@ -96,5 +120,57 @@ const handleCreate = () => {
   &:focus {
     border-color: #85deab;
   }
+}
+
+.project-type-selector {
+  display: flex;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.project-type-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.875rem;
+  font-weight: 400;
+  color: #111012;
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: 1px solid rgb(229, 231, 235);
+  transition: all 0.2s ease;
+
+  &.active {
+    border-color: #85deab;
+    background-color: rgba(133, 222, 171, 0.08);
+  }
+
+  &:hover {
+    background-color: rgba(17, 16, 18, 0.03);
+  }
+}
+
+.radio-circle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  transition: border-color 0.2s ease;
+
+  .active & {
+    border-color: #85deab;
+  }
+}
+
+.radio-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: #85deab;
 }
 </style>
