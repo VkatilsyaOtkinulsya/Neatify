@@ -4,8 +4,9 @@ import Button from '@/components/ui/button/Button.vue';
 import Popover from '@/components/ui/popover/Popover.vue';
 import PopoverContent from '@/components/ui/popover/PopoverContent.vue';
 import PopoverTrigger from '@/components/ui/popover/PopoverTrigger.vue';
+import PermissionGuard from '@/shared/permissions/PermissionGuard.vue';
 import type { IBoardMemberSafe } from '@/shared/types/user.types';
-import { Bolt, Info, UserRoundPlus } from 'lucide-vue-next';
+import { Bolt, Info } from 'lucide-vue-next';
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
 
@@ -75,9 +76,6 @@ const adminstration = computed(() => {
       </nav>
 
       <div class="flex gap-3 items-center">
-        <div class="users">
-          <div v-for="user in users" :key="user.userId">{{ user.profile?.displayName }}</div>
-        </div>
         <popover>
           <popover-trigger as-child class="cursor-pointer">
             <Button variant="outline"><Info /></Button>
@@ -99,27 +97,23 @@ const adminstration = computed(() => {
             </div>
           </popover-content>
         </popover>
-        <Popover>
-          <PopoverTrigger as-child class="cursor-pointer">
-            <Button variant="outline"><Bolt /></Button>
-          </PopoverTrigger>
-          <PopoverContent class="">
-            <div class="flex flex-col gap-2">
-              <div class="font-bold">Настройки</div>
-              <Button variant="outline" class="flex space-y-2">
-                <user-round-plus class="m-0" />
-                <p class="font-medium leading-none">Добавить участника</p>
-              </Button>
-              <Button
-                variant="outline"
-                @click="emit('delete-project', projectId)"
-                class="bg-red-600 hover:bg-red-700"
-              >
-                <p class="font-medium leading-none text-white">Удалить проект</p>
-              </Button>
-            </div>
-          </PopoverContent>
-        </Popover>
+
+        <PermissionGuard :require="'manage_workspace'">
+          <div class="settings" :class="{ active: isActive('settings') }">
+            <router-link
+              class="nav-link"
+              :to="{
+                name: 'settings',
+                params: {
+                  workspaceId: route.params.workspaceId,
+                  projectId: route.params.projectId,
+                },
+              }"
+            >
+              <Bolt />
+            </router-link>
+          </div>
+        </PermissionGuard>
       </div>
     </div>
   </div>
@@ -130,12 +124,33 @@ const adminstration = computed(() => {
   width: 100%;
   font-size: 0.875rem;
   line-height: 1.25rem;
-  padding: 6px 0;
+  padding: 0;
+
   background-color: rgba($color: #fff, $alpha: 0.7);
   border-radius: 0.5rem;
   cursor: pointer;
 
   opacity: 0.5;
+}
+
+.nav-item {
+  width: 100%;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  padding: 0;
+
+  background-color: rgba($color: #fff, $alpha: 0.7);
+  border-radius: 0.5rem;
+  cursor: pointer;
+
+  opacity: 0.5;
+
+  .active {
+    opacity: 100;
+    color: #11429d;
+    background-color: rgba(162, 223, 255, 0.8);
+    pointer-events: auto;
+  }
 }
 
 .nav-item.active {
@@ -149,6 +164,14 @@ const adminstration = computed(() => {
   width: 5rem;
   display: flex;
   justify-content: center;
-  cursor: pointer;
+  padding: 6px 0;
+  text-decoration: none;
+}
+
+.settings {
+  width: 2rem;
+  display: flex;
+  justify-content: center;
+  padding: 0.5rem 0;
 }
 </style>

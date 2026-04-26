@@ -6,7 +6,7 @@ import {
   type TaskFormData,
   type TaskPayloadBase,
 } from '@/features/task/types/task.types';
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import TaskForm from './TaskForm.vue';
 import { formToPayload, taskToForm } from '../../utils/task-form.utils';
 

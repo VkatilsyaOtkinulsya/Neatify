@@ -11,21 +11,33 @@ import {
 } from '@/components/ui/alert-dialog';
 import ProjectHeader from './ProjectHeader.vue';
 import { storeToRefs } from 'pinia';
-import { computed, ref, watch } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 
 import { useProject } from '@/features/project/composables/useProject';
-import { useUsersStore } from '@/shared/stores/users.store';
+import { useUsersStore } from '@/stores/users.store';
 import { handleApiError } from '@/shared/lib/utils/error-handler';
+import { useProjectDetails } from '@/api/queries/useProject';
+import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
+import { usePermissions } from '@/shared/permissions/usePermissions';
+import { useAuthStore } from '@/stores/auth.store';
+import { useProjectSettings } from '@/features/project/composables/useProjectSettings';
 
 const route = useRoute();
 const projectId = computed(() => route.params.projectId as string);
 const workspaceId = computed(() => route.params.workspaceId as string);
 
+const authStore = useAuthStore();
+
 const usersStore = useUsersStore();
 const { users } = storeToRefs(usersStore);
 
 const { deleteProject, isDeletePending } = useProject(workspaceId);
+const { data: projectData } = useProjectDetails(workspaceId, projectId);
+const permissionsState = usePermissions(
+  projectData,
+  computed(() => authStore.userInfo!.id)
+);
 
 const isDeleteDialogOpen = ref(false);
 
@@ -51,6 +63,13 @@ watch(
   },
   { immediate: true }
 );
+
+provide(PERMISSIONS_KEY, {
+  permissions: permissionsState.permissions,
+  can: permissionsState.can,
+  canAny: permissionsState.canAny,
+  canAll: permissionsState.canAll,
+});
 </script>
 
 <template>

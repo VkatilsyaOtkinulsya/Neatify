@@ -1,4 +1,4 @@
-import { useCreateColumn, useMoveColumn } from '@/api/queries/useBoard';
+import { useCreateColumn, useDeleteColumn, useMoveColumn } from '@/api/queries/useBoard';
 import { useProjectDetails } from '@/api/queries/useProject';
 import { useProjectTasks, useMoveTask } from '@/api/queries/useTasks';
 import { computed } from 'vue';
@@ -18,6 +18,7 @@ export function useBoardActions(boardId: string) {
   const { mutate: createBoardColumn } = useCreateColumn(boardId);
   const { mutate: moveTaskMutation } = useMoveTask(boardId);
   const { mutate: moveColumnMutation } = useMoveColumn(boardId);
+  const { mutate: deleteBoardColumn } = useDeleteColumn(boardId);
 
   const moveTask = (payload: {
     taskId: string;
@@ -35,6 +36,7 @@ export function useBoardActions(boardId: string) {
 
   return {
     createBoardColumn,
+    deleteBoardColumn,
     moveTask,
     moveColumn,
   };

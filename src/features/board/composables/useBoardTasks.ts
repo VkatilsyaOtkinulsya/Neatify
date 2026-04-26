@@ -17,7 +17,12 @@ export function useBoardTasks(boardId: string) {
       { ...data, boardId },
       {
         onSuccess,
-        onError: () => showNotification('Ошибка создания задачи', 'error'),
+        onError: (error: any) => {
+          const message =
+            error?.response?.data?.message || error?.message || 'Ошибка создания задачи';
+
+          showNotification(message, 'error');
+        },
       }
     );
   };

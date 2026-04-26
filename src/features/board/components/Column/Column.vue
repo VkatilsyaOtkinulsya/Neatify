@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed, ref, nextTick, watch } from 'vue';
-import { useBoardDragStore } from '../boardDrag.store';
+import { computed, inject, ref } from 'vue';
+import { useBoardDragStore } from '../../boardDrag.store';
 import TaskCard from '@/features/task/components/TaskCard.vue';
 import type { Task, TaskCardData } from '@/features/task/types/task.types';
-import type { BoardColumn } from '../types/project.types';
+import type { BoardColumn } from '../../types/board.types';
 import Input from '@/components/ui/input/Input.vue';
+import ColumnActionsMenu from './ColumnActionsMenu.vue';
+import { useColumnTitleEdit } from '../../composables/useColumnTitleEdit';
+import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
+import PermissionGuard from '@/shared/permissions/PermissionGuard.vue';
+import ColumnSettingsDialog from './ColumnSettingsDialog.vue';
+
+type UpdateColumnPayload = {
+  columnId: string;
+  data: Partial<BoardColumn>;
+};
 
 const props = defineProps<{
   column: BoardColumn;
@@ -22,67 +32,39 @@ const emits = defineEmits<{
       afterTaskId?: string;
     },
   ];
-  'update-column': [payload: { columnId: string; data: Partial<BoardColumn> }];
+  'update-column': [payload: UpdateColumnPayload];
+  'delete-column': [];
   'column-drag-start': [payload: { columnId: string }];
   'column-drag-end': [];
   'edit-task': [taskData: Task];
 }>();
 
 const dragStore = useBoardDragStore();
-const hoverIndex = ref<number | null>(null);
 const inputRef = ref<HTMLInputElement | null>(null);
+const hoverIndex = ref<number | null>(null);
+const isColumnSettingsDialogOpen = ref(false);
+
+const {
+  isEditingColumnTitle,
+  editedColumnTitle,
+  startEditColumnTitle,
+  finishEditColumnTitle,
+  cancelEdit,
+  handleEnter,
+} = useColumnTitleEdit(
+  () => props.column,
+  inputRef,
+  (payload) => emits('update-column', payload)
+);
 
 const orderedTasks = computed(() => {
   const tasks = props.tasks;
   if (!tasks.length) return tasks;
 
-  return props.tasks
-    .map((t) => ({ ...t }))
-    .filter((t) => t.completedAt === null)
-    .sort((a, b) => a.position - b.position);
+  return props.tasks.sort((a, b) => a.position - b.position);
 });
 
 const isEmpty = computed(() => orderedTasks.value.length === 0);
-
-const isEditingColumnTitle = ref(false);
-const editedColumnTitle = ref('');
-
-const startEditColumnTitle = async () => {
-  isEditingColumnTitle.value = true;
-
-  await nextTick();
-  requestAnimationFrame(() => {
-    inputRef.value?.focus();
-    inputRef.value?.select();
-  });
-};
-
-const finishEditColumnTitle = () => {
-  if (!isEditingColumnTitle.value) return;
-
-  isEditingColumnTitle.value = false;
-
-  const newTitle = editedColumnTitle.value.trim();
-  const oldTitle = props.column.title;
-
-  if (!newTitle || newTitle === oldTitle) {
-    editedColumnTitle.value = oldTitle;
-    return;
-  }
-
-  emits('update-column', {
-    columnId: props.column._id,
-    data: { title: newTitle },
-  });
-};
-
-const cancelEdit = () => {
-  editedColumnTitle.value = props.column.title;
-  inputRef.value?.blur();
-};
-const handleEnter = () => {
-  inputRef.value?.blur();
-};
 
 const getTaskNeighbors = (index: number) => {
   const tasks = orderedTasks.value;
@@ -135,28 +117,34 @@ const taskCardData = (task: Task): TaskCardData => ({
   checklist: task.checklist.length
     ? {
         total: task.checklist.length,
-        completed: task.checklist.filter((t) => !t.isCompleted).length,
+        completed: task.checklist.filter((t) => t.isCompleted).length,
       }
     : null,
   attachment: task.attachments.length,
 });
 
-watch(
-  () => props.column.title,
-  (v) => {
-    if (!isEditingColumnTitle.value) {
-      editedColumnTitle.value = v;
-    }
-  },
-  { immediate: true }
-);
+const columnSettings = ref({
+  taskLimit: props.column.taskLimit,
+  color: props.column.color,
+});
+
+const saveColumnSettings = () => {
+  if (columnSettings.value.taskLimit === 0) columnSettings.value.taskLimit = null;
+
+  isColumnSettingsDialogOpen.value = false;
+};
+
+const permissionsCtx = inject(PERMISSIONS_KEY)!;
+
+const canUpdateColumn = computed(() => permissionsCtx.can('update_column'));
+const canDeleteColumn = computed(() => permissionsCtx.can('delete_task'));
 </script>
 
 <template>
   <div class="column-container">
     <div class="column" :style="{ backgroundColor: color }">
       <div
-        class="h-10 px-2 pt-2 cursor-grab active:cursor-grabbing hover:cursor-pointer"
+        class="flex justify-between h-10 px-2 pt-2 cursor-grab active:cursor-grabbing"
         :draggable="!isEditingColumnTitle"
         @dragstart="handleColumnDragStart"
         @dragend="handleColumnDragEnd"
@@ -165,9 +153,10 @@ watch(
           v-if="!isEditingColumnTitle"
           @mousedown.stop
           @click.stop="startEditColumnTitle"
-          class="pl-3 pt-1.5 text-sm"
+          class="pl-3 pt-1.5 text-sm cursor-text"
         >
           {{ editedColumnTitle }}
+          <span class="opacity-0 group-hover:opacity-100 transition"> ✏️ </span>
         </p>
         <Input
           v-else
@@ -178,6 +167,19 @@ watch(
           @keydown.enter.prevent="handleEnter"
           @keydown.esc="cancelEdit"
         />
+        <PermissionGuard :require="'update_column'">
+          <div class="rounded-2xl hover:bg-amber-500">
+            <span aria-label="Изменить карточку">
+              <ColumnActionsMenu
+                :canUpdate="canUpdateColumn"
+                :canDelete="canDeleteColumn"
+                @delete="emits('delete-column')"
+                @update="emits('update-column', $event)"
+                @open-settings="isColumnSettingsDialogOpen = true"
+              />
+            </span>
+          </div>
+        </PermissionGuard>
       </div>
       <div class="column-content">
         <div class="tasks-list" ref="listRef">
@@ -196,6 +198,7 @@ watch(
               @drag-start="dragStore.startTaskDrag(task.id, props.column._id)"
               @drag-end="dragStore.clear"
               @click="emits('edit-task', task)"
+              @edit-task="emits('edit-task', task)"
             >
               <template #editable_title>
                 {{ task.title }}
@@ -217,6 +220,12 @@ watch(
       </div>
     </div>
   </div>
+
+  <ColumnSettingsDialog
+    v-model:isOpen="isColumnSettingsDialogOpen"
+    v-model="columnSettings"
+    @save="saveColumnSettings"
+  />
 </template>
 
 <style lang="scss" scoped>

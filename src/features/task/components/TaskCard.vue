@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import Badge from '@/components/ui/badge/Badge.vue';
-import { computed, ref } from 'vue';
+import { computed, inject, ref } from 'vue';
 import TaskActionsMenu from './TaskActionsMenu.vue';
 import { useCompleteTask, useDeleteTask } from '@/api/queries/useTasks';
 import { showNotification } from '@/shared/lib/utils/error-handler';
@@ -9,6 +9,7 @@ import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 import { CircleUser, Clock, Paperclip, SquareCheckBig } from 'lucide-vue-next';
 import type { TaskCardData } from '../types/task.types';
 import { df } from '@/shared/lib/utils/formatDate';
+import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
 
 const props = defineProps<{
   task: TaskCardData;
@@ -18,6 +19,7 @@ const { task } = props;
 const emit = defineEmits<{
   'drag-start': [];
   'drag-end': [];
+  'edit-task': [];
 }>();
 
 const isDragging = ref(false);
@@ -28,30 +30,22 @@ const deleteTask = useDeleteTask(task.boardId);
 const completeTask = useCompleteTask(task.boardId);
 
 const handleDelete = () => {
-  deleteTask.mutate(task.id, {
-    onSuccess: () => {
-      alert('Task deleted successfully');
-    },
-    onError: (error) => {
-      console.error('Failed to delete task:', error);
-    },
-  });
+  deleteTask.mutate(task.id);
 };
 
 const handleComplete = () => {
-  completeTask.mutate(task.id, {
-    onSuccess: () => {
-      showNotification('Task complete successfully', 'success');
-    },
-    onError: (error) => {
-      console.error('Failed to complete task:', error);
-    },
-  });
+  completeTask.mutate(task.id);
 };
 
 const priorityComponent = computed(() => {
   return TaskPriorityMap[task.priority] ?? null;
 });
+
+const permissionsCtx = inject(PERMISSIONS_KEY)!;
+
+const canMove = computed(() => permissionsCtx.can('move_task'));
+const canComplete = computed(() => permissionsCtx.can('update_task'));
+const canDelete = computed(() => permissionsCtx.can('delete_task'));
 </script>
 
 <template>
@@ -61,10 +55,10 @@ const priorityComponent = computed(() => {
       'opacity-50 pointer-events-none': isLoading,
       'is-dragging': isDragging,
     }"
-    draggable="true"
+    :draggable="canMove"
     @pointerdown.stop
     @mousedown.stop
-    @dragstart="emit('drag-start')"
+    @dragstart="canMove && emit('drag-start')"
     @dragend="emit('drag-end')"
   >
     <div class="flex w-full gap-1 opacity-90 mb-2 pr-8">
@@ -118,7 +112,13 @@ const priorityComponent = computed(() => {
     <!-- Actinos -->
     <div class="absolute top-0 right-0 cursor-pointer rounded-full">
       <span aria-label="Изменить карточку">
-        <TaskActionsMenu @delete="handleDelete" @complete="handleComplete" />
+        <TaskActionsMenu
+          :canComplete="canComplete"
+          :canDelete="canDelete"
+          @delete="handleDelete"
+          @complete="handleComplete"
+          @edit="emit('edit-task')"
+        />
       </span>
     </div>
   </div>

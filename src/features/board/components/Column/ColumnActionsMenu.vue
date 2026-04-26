@@ -5,39 +5,52 @@ import DropdownMenuItem from '@/components/ui/dropdown-menu/DropdownMenuItem.vue
 import DropdownMenuShortcut from '@/components/ui/dropdown-menu/DropdownMenuShortcut.vue';
 import DropdownMenuTrigger from '@/components/ui/dropdown-menu/DropdownMenuTrigger.vue';
 
-import { Check, MoreVerticalIcon, Trash2 } from 'lucide-vue-next';
+import { Bolt, Check, MoreVerticalIcon, Trash2 } from 'lucide-vue-next';
 
-const emit = defineEmits(['edit', 'complete', 'delete']);
+const emit = defineEmits(['move-left', 'move-right', 'complete', 'delete', 'open-settings']);
 
 defineProps<{
-  canComplete: boolean;
+  canUpdate?: boolean;
+  canMove?: boolean;
   canDelete: boolean;
 }>();
+
+const openSettings = () => {
+  emit('open-settings');
+};
 
 const handleDelete = () => {
   emit('delete');
 };
 
-const handleComplete = () => {
-  emit('complete');
-};
-
-const handleEdit = () => {
-  emit('edit');
+const handleMove = (side: string) => {
+  if (side === 'left') {
+    emit('move-left');
+  } else emit('move-right');
 };
 </script>
 
 <template>
   <DropdownMenu>
-    <DropdownMenuTrigger @click.stop class="w-8 h-8 p-2 cursor-pointer hover:bg-gray">
-      <MoreVerticalIcon class="w-4 h-4 rounded-full hover:bg-gray-300" />
+    <DropdownMenuTrigger @click.stop class="w-8 h-8 p-2 cursor-pointer">
+      <MoreVerticalIcon class="w-4 h-4 rounded-full" />
     </DropdownMenuTrigger>
     <DropdownMenuContent>
-      <DropdownMenuItem @click="handleEdit">Редактировать</DropdownMenuItem>
-      <DropdownMenuItem v-if="canComplete" @click="handleComplete">
-        Выполнить
+      <DropdownMenuItem v-if="canUpdate" @click="handleMove('left')">
+        влево
         <DropdownMenuShortcut> <Check /> </DropdownMenuShortcut>
       </DropdownMenuItem>
+
+      <DropdownMenuItem v-if="canUpdate" @click="handleMove('right')">
+        вправо
+        <DropdownMenuShortcut> <Check /> </DropdownMenuShortcut>
+      </DropdownMenuItem>
+
+      <DropdownMenuItem @click="openSettings">
+        Настройки
+        <DropdownMenuShortcut><Bolt /></DropdownMenuShortcut>
+      </DropdownMenuItem>
+
       <DropdownMenuItem v-if="canDelete" @click="handleDelete">
         Удалить
         <DropdownMenuShortcut><Trash2 /></DropdownMenuShortcut>

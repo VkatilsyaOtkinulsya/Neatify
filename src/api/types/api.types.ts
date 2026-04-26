@@ -1,5 +1,6 @@
 import type { UserData } from '@/features/auth/types/auth.types';
 import type { Task } from '@/features/task/types/task.types';
+import type { IBoardMemberSafe } from '@/shared/types/user.types';
 
 export interface LoginRequest {
   email: string;
@@ -27,4 +28,8 @@ export interface BoardTasksResponse {
   tasks: Task[];
   tasksByColumn: Record<string, Task[]>;
   totalCount: number;
+}
+
+export interface AddMemberResponse {
+  user: IBoardMemberSafe;
 }

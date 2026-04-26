@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import type { RouteRecordRaw } from 'vue-router';
 import type { AuthToken } from '@/features/auth/types/auth.types';
+import { requirePermission } from '@/shared/permissions/permissionRoute.guard';
 
 const routes: RouteRecordRaw[] = [
   {
@@ -56,20 +57,34 @@ const routes: RouteRecordRaw[] = [
                 path: 'review',
                 name: 'review',
                 component: () => import('@/modules/Review/Review.vue'),
+                beforeEnter: requirePermission('view_project'),
               },
               {
                 path: 'board',
                 name: 'board',
                 component: () => import('@/features/board/components/Board.vue'),
+                beforeEnter: requirePermission('view_project'),
               },
               {
                 path: 'table',
                 name: 'table',
                 component: () => import('@/modules/Table/Table.vue'),
+                beforeEnter: requirePermission('view_project'),
+              },
+              {
+                path: 'settings',
+                name: 'settings',
+                component: () => import('@/modules/Project/ProjectSettings/ProjectSettings.vue'),
+                beforeEnter: requirePermission('update_project'),
               },
             ],
           },
         ],
+      },
+      {
+        path: 'activity',
+        name: 'activity',
+        component: () => import('@/pages/Activity/Activity.vue'),
       },
     ],
   },

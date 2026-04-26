@@ -6,14 +6,15 @@ import './style.css';
 import App from './App.vue';
 import router from './router';
 import './api/api';
-import { vClickOutside } from './directives/clickOutside';
+import { vClickOutside } from '@/shared/directives/clickOutside';
+import { vPermission } from './shared/directives/vPermission.directive';
 
 const pinia = createPinia();
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 минут
+      refetchOnWindowFocus: true,
+      staleTime: 5 * 60 * 1000,
     },
   },
 });
@@ -33,5 +34,7 @@ app.directive('click-outside', vClickOutside);
 app.use(pinia);
 app.use(VueQueryPlugin, { queryClient });
 app.use(router);
+
+app.directive('permission', vPermission);
 
 app.mount('#app');

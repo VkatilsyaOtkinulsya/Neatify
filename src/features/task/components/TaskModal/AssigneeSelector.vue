@@ -10,7 +10,7 @@ import {
   SelectValue,
   SelectItem,
 } from '@/components/ui/select';
-import { useUsersStore } from '@/shared/stores/users.store';
+import { useUsersStore } from '@/stores/users.store';
 import { computed } from 'vue';
 
 const props = defineProps<{
