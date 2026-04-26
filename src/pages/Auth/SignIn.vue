@@ -1,25 +1,14 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth.store';
 import { useRouter } from 'vue-router';
-import Input from '@/components/ui/selfmade-input/Input.vue';
-import Button from '@/components/ui/custom-button/Button.vue';
-import { reactive } from 'vue';
-import Loader from '@/components/ui/loader/Loader.vue';
+import SignInForm from '@/components/ui/forms/SignInForm.vue';
 
 const router = useRouter();
 const authStore = useAuthStore();
 
-const formData = reactive({
-  email: '',
-  password: '',
-});
-
-const handleSubmit = async () => {
+const handleSubmit = async (data: { email: string; password: string }) => {
   try {
-    await authStore.login({
-      email: formData.email,
-      password: formData.password,
-    });
+    await authStore.login(data);
     router.push('/main');
   } catch (err) {
     if (err instanceof Error) {
@@ -43,28 +32,7 @@ const handleSubmit = async () => {
     <div class="form-wrapper">
       <h2 class="form-wrapper__title">Вход</h2>
       <p v-if="authStore.error" class="warn-message">{{ authStore.error }}</p>
-      <form @submit.prevent="handleSubmit" class="auth-form">
-        <Input
-          v-model="formData.email"
-          name="email"
-          type="email"
-          autocomplete="email"
-          placeholder="Your Email"
-          class="auth-form__input"
-          required
-        />
-        <Input
-          v-model="formData.password"
-          name="password"
-          type="password"
-          placeholder="Password"
-          class="auth-form__input"
-          suggested="current-password"
-          required
-        />
-        <Loader v-if="authStore.isLoading" color="#000" />
-        <Button v-else type="submit" class="auth-form__button">Войти</Button>
-      </form>
+      <SignInForm :is-loading="authStore.isLoading" @submit="handleSubmit" />
       <span class="ans-text"
         >Вы еще не зарегистрированы? <router-link to="/signup">Регистрация</router-link></span
       >
@@ -136,51 +104,6 @@ const handleSubmit = async () => {
     font-weight: 500;
     font-size: 1.5rem;
     pointer-events: none;
-  }
-
-  .auth-form {
-    width: 100%;
-    min-height: 150px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-    transition: all 0.5s ease-in-out;
-    overflow: hidden;
-    padding: 0 40px;
-    box-sizing: border-box;
-
-    .auth-form__input {
-      width: 300px;
-      padding: 11px 14px;
-      border: 1px solid rgb(213, 215, 219);
-
-      border-radius: 6px;
-      box-sizing: border-box;
-
-      &:active {
-        background-color: rgb(240, 240, 240);
-        border: 1px solid rgb(37, 99, 235);
-      }
-      &:hover {
-        opacity: 0.8;
-        border: 1px solid rgb(196, 196, 196);
-      }
-    }
-
-    .auth-form__button {
-      min-width: 120px;
-      font-size: 14px;
-      padding: 11px 14px;
-      border: none;
-      border-radius: 57.5px;
-      background-color: #1867c0;
-      color: #fff;
-
-      &:hover {
-        opacity: 0.8;
-      }
-    }
   }
 
   .ans-text {
@@ -263,10 +186,6 @@ const handleSubmit = async () => {
   .form-wrapper {
     max-width: 85%;
     min-height: 380px;
-
-    .auth-form {
-      padding: 0 20px 20px;
-    }
   }
 }
 
@@ -283,16 +202,6 @@ const handleSubmit = async () => {
 
     .form-wrapper__title {
       font-size: 1.3rem;
-    }
-
-    .auth-form {
-      gap: 15px;
-
-      .auth-form__input {
-        width: 100%;
-        max-width: 300px;
-        padding: 10px 12px;
-      }
     }
   }
 }
