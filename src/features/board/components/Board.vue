@@ -5,7 +5,7 @@ import { computed, defineAsyncComponent, ref } from 'vue';
 import Column from './Column/Column.vue';
 import ColumnsList from './ColumnsList.vue';
 import AddColumnButton from './Column/AddColumnButton.vue';
-import Loader from '@/components/ui/loader/Loader.vue';
+import BoardSkeleton from './BoardSkeleton.vue';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -114,9 +114,7 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
 
 <template>
   <div class="board-wrapper">
-    <div v-if="isLoadingBoard || isLoadingTasks" class="board-loader">
-      <Loader color="#4A5568" />
-    </div>
+    <BoardSkeleton v-if="isLoadingBoard || isLoadingTasks" />
 
     <div v-else-if="isError">Error loading board</div>
 

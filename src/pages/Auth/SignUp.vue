@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuthStore } from '@/shared/stores/auth.store';
+import { useAuthStore } from '@/stores/auth.store';
 import Input from '@/components/ui/selfmade-input/Input.vue';
 import Button from '@/components/ui/custom-button/Button.vue';
 import { reactive } from 'vue';

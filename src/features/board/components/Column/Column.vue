@@ -117,7 +117,7 @@ const taskCardData = (task: Task): TaskCardData => ({
   checklist: task.checklist.length
     ? {
         total: task.checklist.length,
-        completed: task.checklist.filter((t) => !t.isCompleted).length,
+        completed: task.checklist.filter((t) => t.isCompleted).length,
       }
     : null,
   attachment: task.attachments.length,

@@ -1,31 +1,20 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref } from 'vue';
 import NotificationModal from '@/components/ui/modal/NotificationModal.vue';
 import { registerNotificationComponent } from '@/shared/lib/utils/error-handler';
-import { useCheckAuth } from './features/auth/composables/useCheckAuth';
 import type { NotificationComponent } from '@/shared/types/notification';
-import { useWorkspaceStore } from '@/stores/spaces.store';
+import { useAuthStore } from './stores/auth.store';
 
 const notificationRef = ref<NotificationComponent | null>(null);
 
-const { accessToken } = useCheckAuth();
-
 onMounted(() => {
+  const authStore = useAuthStore();
+  authStore.initAuth();
+
   if (notificationRef.value) {
     registerNotificationComponent(notificationRef.value);
   }
 });
-
-const spacesStore = useWorkspaceStore();
-watch(
-  accessToken,
-  (newToken) => {
-    if (newToken) {
-      spacesStore.loadSpaces();
-    }
-  },
-  { immediate: true }
-);
 </script>
 
 <template>

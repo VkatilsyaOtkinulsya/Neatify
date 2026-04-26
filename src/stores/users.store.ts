@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { handleApiError } from '@/shared/lib/utils/error-handler';
+import { handleApiError, showNotification } from '@/shared/lib/utils/error-handler';
 import type { IBoardMemberSafe } from '@/shared/types/user.types';
 import { BoardService } from '@/api/services/board.service';
 import { normalizeUser } from '@/shared/lib/utils/normalizeUser';
@@ -29,13 +29,23 @@ export const useUsersStore = defineStore('project users', {
     },
 
     async addMember(projectId: string, payload: AddMemberPayload) {
-      await BoardService.addMember(projectId, payload);
-      await this.getProjectUsers(projectId);
+      try {
+        await BoardService.addMember(projectId, payload);
+        await this.getProjectUsers(projectId);
+        showNotification('Участник добавлен', 'success');
+      } catch (err) {
+        handleApiError(err, { context: 'Не удалось добавить участника' });
+      }
     },
 
-    async removeMember(projectId: string, userId: string): Promise<void> {
-      await BoardService.removeMember(projectId, userId);
-      await this.getProjectUsers(projectId);
+    async removeMember(projectId: string, userId: string) {
+      try {
+        await BoardService.removeMember(projectId, userId);
+        await this.getProjectUsers(projectId);
+        showNotification('Участник удален', 'success');
+      } catch (err) {
+        handleApiError(err, { context: 'Не удалось удалить участника' });
+      }
     },
   },
 });

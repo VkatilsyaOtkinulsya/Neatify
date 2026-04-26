@@ -13,13 +13,15 @@ import Button from '@/components/ui/button/Button.vue';
 import { useUsersStore } from '@/stores/users.store';
 import { Check, CircleUser, Trash2, UserRoundPlus } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { computed, ref, Transition } from 'vue';
+import { computed, reactive, ref, Transition } from 'vue';
 import { useRoute } from 'vue-router';
 import type { MemberRole } from '@/shared/types/user.types';
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue';
 import Label from '@/components/ui/label/Label.vue';
 import { useProjectSettings } from '@/features/project/composables/useProjectSettings';
 import type { ProjectSettings } from '@/features/board/types/board.types';
+import AddMemberDialog from './AddMemberDialog.vue';
+import { MemberRoleEnum } from '@/shared/types/roles';
 
 type SettingKey = keyof ProjectSettings;
 
@@ -45,8 +47,12 @@ const { localSettings, updateSetting, savedKey } = useProjectSettings(projectId)
 
 const isDeleteDialogOpen = ref(false);
 const removeUserId = ref<string | null>(null);
-const selectedRole = ref<MemberRole>('member');
-const userEmail = ref<string>('');
+
+const isAddMemberDialogOpen = ref(false);
+const form = reactive<{ email: string; role: MemberRole }>({
+  email: '',
+  role: MemberRoleEnum.MEMBER as MemberRole,
+});
 
 const openDeleteDialog = (id: string) => {
   removeUserId.value = id;
@@ -60,6 +66,15 @@ const confirmDelete = () => {
 
   isDeleteDialogOpen.value = false;
   removeUserId.value = null;
+};
+
+const handleAddMember = () => {
+  if (!form.email) return;
+  if (form.role === null) return;
+
+  usersStore.addMember(projectId.value, { ...form });
+  form.email = '';
+  form.role = MemberRoleEnum.MEMBER;
 };
 </script>
 
@@ -75,13 +90,12 @@ const confirmDelete = () => {
 
             <td>{{ user.profile.displayName ? user.profile.firstName : 'болванка' }}</td>
             <td>{{ user.role }}</td>
-            <td>{{ user.role }}</td>
             <td @click.stop="openDeleteDialog(user.userId)"><Trash2 /></td>
           </tr>
         </tbody>
       </table>
 
-      <Button variant="outline" class="flex space-y-2">
+      <Button @click="isAddMemberDialogOpen = true" variant="outline" class="flex space-y-2">
         <UserRoundPlus class="m-0" />
         <p class="font-medium leading-none">Добавить участника</p>
       </Button>
@@ -118,6 +132,14 @@ const confirmDelete = () => {
       </Button>
     </div>
   </div>
+
+  <Teleport to="body">
+    <AddMemberDialog
+      v-model:open="isAddMemberDialogOpen"
+      v-model="form"
+      @submit="handleAddMember"
+    />
+  </Teleport>
 
   <AlertDialog :open="isDeleteDialogOpen" @update:open="isDeleteDialogOpen = $event">
     <AlertDialogContent>

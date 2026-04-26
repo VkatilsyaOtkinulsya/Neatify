@@ -86,9 +86,11 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
               </template>
             </NavItem>
           </router-link>
-          <NavItem href="/activity" label="Активность" tooltipText="Активность" :isOpened>
-            <template #icon><ActivityIcon /></template>
-          </NavItem>
+          <router-link to="/activity">
+            <NavItem label="Активность" tooltipText="Активность" :isOpened>
+              <template #icon><ActivityIcon /></template>
+            </NavItem>
+          </router-link>
         </div>
         <div class="content__wrapper">
           <div class="content__space-list">

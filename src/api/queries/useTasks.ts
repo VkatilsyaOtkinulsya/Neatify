@@ -3,6 +3,7 @@ import { TaskService } from '../services/task.service';
 import type { ChecklistItemInput, Task, TaskPayloadBase } from '@/features/task/types/task.types';
 import type { BoardTasksResponse } from '../types/api.types';
 import { mergeTask } from '@/features/task/utils/mergeTask';
+import { showNotification } from '@/shared/lib/utils/error-handler';
 
 export type CreateTaskPayload = Omit<Partial<Task>, 'checklist'> & {
   checklist?: ChecklistItemInput[];
@@ -101,6 +102,10 @@ export function useDeleteTask(boardId: string) {
     mutationFn: (taskId: string) => TaskService.delete(taskId, true).then(() => boardId), // true, перманентное удаление
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: taskKeys.byBoard(boardId) });
+      showNotification('Задача успешно удалена', 'success');
+    },
+    onError: (error) => {
+      console.error('Failed to delete task:', error);
     },
   });
 }
@@ -137,10 +142,16 @@ export function useCompleteTask(boardId: string) {
       return { previousTasks };
     },
 
+    onSuccess: () => {
+      showNotification('Задача успешно удалена!', 'success');
+    },
+
     onError: (_err, _taskId, context) => {
       if (context?.previousTasks) {
         queryClient.setQueryData(taskKeys.byBoard(boardId), context.previousTasks);
       }
+
+      showNotification('Не удалось удалить задачу', 'error');
     },
 
     onSettled: () => {

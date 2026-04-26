@@ -30,25 +30,11 @@ const deleteTask = useDeleteTask(task.boardId);
 const completeTask = useCompleteTask(task.boardId);
 
 const handleDelete = () => {
-  deleteTask.mutate(task.id, {
-    onSuccess: () => {
-      alert('Task deleted successfully');
-    },
-    onError: (error) => {
-      console.error('Failed to delete task:', error);
-    },
-  });
+  deleteTask.mutate(task.id);
 };
 
 const handleComplete = () => {
-  completeTask.mutate(task.id, {
-    onSuccess: () => {
-      showNotification('Task complete successfully', 'success');
-    },
-    onError: (error) => {
-      console.error('Failed to complete task:', error);
-    },
-  });
+  completeTask.mutate(task.id);
 };
 
 const priorityComponent = computed(() => {

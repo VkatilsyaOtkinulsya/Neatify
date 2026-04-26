@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import LeftsideBar from '@/modules/LeftsideBar/LeftsideBar.vue';
 import { ref, onMounted, computed } from 'vue';
-import { handleApiError } from '@/shared/lib/utils/error-handler';
 import { useWorkspaceStore } from '@/stores/spaces.store';
 
 const showLoader = ref(false);
 
-const displayName: string = JSON.parse(localStorage.getItem('userData') || '').profile.displayName;
+const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+const displayName: string = userData?.profile?.displayName ?? '';
 
 const spaceStore = useWorkspaceStore();
 const spaceList = computed(() =>
@@ -18,11 +18,7 @@ const spaceList = computed(() =>
 );
 
 onMounted(async () => {
-  try {
-    await spaceStore.loadSpaces();
-  } catch (err) {
-    handleApiError(err);
-  }
+  await spaceStore.loadSpaces();
 });
 </script>
 
