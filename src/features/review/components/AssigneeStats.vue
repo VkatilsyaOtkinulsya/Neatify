@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AssigneeStats } from '@/shared/types/review';
 
-const props = defineProps<AssigneeStats>();
+defineProps<AssigneeStats>();
 </script>
 
 <template>

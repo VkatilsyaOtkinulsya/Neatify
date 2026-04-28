@@ -45,7 +45,7 @@ export function useProjectSettings(projectId: Ref<string>) {
       return { previous };
     },
 
-    onError: (err, newSettings, context) => {
+    onError: (_err, _newSettings, context) => {
       // Откат и кэша и локального состояния
       if (context?.previous) {
         queryClient.setQueryData<ProjectDetails>(
@@ -54,7 +54,7 @@ export function useProjectSettings(projectId: Ref<string>) {
         );
         localSettings.value = { ...context.previous.settings };
       }
-      showNotification('Не удало обновить настройки, попробуйте позже', 'error');
+      showNotification('Не удалось обновить настройки, попробуйте позже', 'error');
     },
 
     onSettled: () => {

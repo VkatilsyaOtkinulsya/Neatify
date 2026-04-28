@@ -3,7 +3,6 @@ import Badge from '@/components/ui/badge/Badge.vue';
 import { computed, inject, ref } from 'vue';
 import TaskActionsMenu from './TaskActionsMenu.vue';
 import { useCompleteTask, useDeleteTask } from '@/api/queries/useTasks';
-import { showNotification } from '@/shared/lib/utils/error-handler';
 import { TaskPriorityMap } from '../types/priority.config';
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 import { CircleUser, Clock, Paperclip, SquareCheckBig } from 'lucide-vue-next';

@@ -12,7 +12,7 @@ import Loader from '@/components/ui/loader/Loader.vue';
 import { Trash2 } from 'lucide-vue-next';
 
 import { useBoardData } from '@/features/board/composables/useBoard';
-import { computed, defineAsyncComponent, ref, TransitionGroup } from 'vue';
+import { computed, defineAsyncComponent, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useUsersStore } from '@/stores/users.store';
 import { storeToRefs } from 'pinia';
@@ -111,7 +111,6 @@ const usersMap = computed(() => {
         <input v-model="showCompletedTasks" type="checkbox" name="showCompleted" id="" />
         <label for="showCompleted">Показать выполненные задачи</label>
       </div>
-      <TransitionGroup name="list"></TransitionGroup>
       <Table v-if="project" class="table-fixed w-full">
         <TableHeader>
           <TableRow>

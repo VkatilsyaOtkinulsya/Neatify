@@ -16,16 +16,13 @@ const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 const projectId = computed(() => route.params.projectId as string);
 
-const { data: project } = useProjectDetails(workspaceId.value, projectId.value);
+// Передаём Ref, чтобы хук реактивно перезапрашивал при смене параметров
+const { data: project } = useProjectDetails(workspaceId, projectId);
 
 const workspace = inject<Ref<Workspace | undefined>>('workspace');
 
-interface BreadCrumbItem {
-  name: string;
-  title: string;
-  path?: string;
-  disabled?: boolean;
-}
+// Страницы навигации проекта, которые не нужно дублировать в крошках
+const projectNavPages = ['review', 'board', 'table'];
 
 const breadcrumbs = computed(() => {
   const crumbs: BreadCrumbItem[] = [];
@@ -41,13 +38,13 @@ const breadcrumbs = computed(() => {
   if (route.params.projectId && project.value) {
     crumbs.push({
       name: 'project',
-      // ✅ берём из данных, не из query
       title: project.value.title || 'Project',
-      path: `/spaces/${route.params.workspaceId}/${route.params.projectId}/tasks`,
+      path: `/spaces/${route.params.workspaceId}/${route.params.projectId}`,
     });
   }
 
-  if (route.meta?.crumb) {
+  // Добавляем крошку только если это не навигационная страница проекта
+  if (route.meta?.crumb && !projectNavPages.includes(route.name as string)) {
     crumbs.push({
       name: route.meta.crumb as string,
       title: (route.meta.title as string) || (route.meta.crumb as string),
@@ -100,9 +97,8 @@ const breadcrumbs = computed(() => {
 </template>
 
 <style scoped>
-.breadcrumb {
+.breadcrumbs {
   display: flex;
-  margin-bottom: 1rem;
 }
 
 .breadcrumbs__list {
@@ -113,9 +109,9 @@ const breadcrumbs = computed(() => {
   gap: 0.25rem;
 }
 
-.breadcrumb-item {
+.breadcrumbs__item {
   display: flex;
-  justify-items: center;
+  align-items: center;
   transition: all 0.2s ease;
 }
 
@@ -129,7 +125,7 @@ const breadcrumbs = computed(() => {
 }
 
 .breadcrumb-link {
-  color: #007bff;
+  color: inherit;
   text-decoration: none;
   padding: 0.25rem 0;
   border-radius: 4px;
@@ -138,18 +134,21 @@ const breadcrumbs = computed(() => {
 }
 
 .breadcrumb-link:hover {
-  background-color: #f8f9fa;
-  text-decoration: underline;
-  border-color: #e9ecef;
+  text-decoration: none;
+  background-color: transparent;
+  color: #007bff;
+}
+
+.breadcrumb-link:hover {
+  text-decoration: none;
+  background-color: #fff;
 }
 
 .breadcrumb-link:active {
-  background-color: #e9ecef;
-  transform: translateY(1px);
+  opacity: 0.8;
 }
-
-.breadcrumb-current {
-  color: #6c757d;
+PS > npm run build .breadcrumb-current {
+  color: #636d75;
   padding: 0.25rem 0;
   font-weight: 500;
   border-radius: 4px;
@@ -157,9 +156,7 @@ const breadcrumbs = computed(() => {
 }
 
 .breadcrumb-current--disabled {
-  color: #495057;
-  background-color: #f8f9fa;
-  border-color: #e9ecef;
+  color: #636d75;
   cursor: not-allowed;
   opacity: 0.7;
 }
@@ -177,22 +174,15 @@ const breadcrumbs = computed(() => {
 /* Темная тема */
 @media (prefers-color-scheme: dark) {
   .breadcrumb-link {
-    color: #4dabf7;
-  }
-
-  .breadcrumb-link:hover {
-    background-color: #343a40;
-    border-color: #495057;
+    color: inherit;
   }
 
   .breadcrumb-current {
-    color: #adb5bd;
+    color: #6d7277;
   }
 
   .breadcrumb-current--disabled {
-    color: #ced4da;
-    background-color: #495057;
-    border-color: #6c757d;
+    color: #6d7277;
   }
 
   .breadcrumb-separator {
@@ -202,7 +192,7 @@ const breadcrumbs = computed(() => {
 
 /* Адаптивность */
 @media (max-width: 768px) {
-  .breadcrumb-list {
+  .breadcrumbs__list {
     font-size: 0.875rem;
   }
 

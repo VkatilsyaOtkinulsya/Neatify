@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ActivityStats } from '@/shared/types/review';
 
-const props = defineProps<ActivityStats>();
+defineProps<ActivityStats>();
 </script>
 
 <template>

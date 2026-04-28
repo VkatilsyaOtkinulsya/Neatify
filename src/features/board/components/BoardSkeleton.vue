@@ -1,8 +1,4 @@
 <script setup lang="ts">
-import { ref } from 'vue';
-
-/** Количество колонок-заглушек */
-const columnCount = ref(5);
 /** Карточек в каждой колонке (варьируется для реалистичности) */
 const cardsPerColumn = [3, 2, 4, 1, 2];
 </script>
@@ -20,7 +16,7 @@ const cardsPerColumn = [3, 2, 4, 1, 2];
         <!-- Карточки -->
         <div class="column-body-skeleton">
           <div
-            v-for="(card, cardIdx) in count"
+            v-for="(_, cardIdx) in count"
             :key="cardIdx"
             class="task-card-skeleton"
             :style="{ minHeight: `${60 + Math.random() * 40}px` }"

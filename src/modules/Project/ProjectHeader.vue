@@ -14,10 +14,6 @@ type Administration = 'owner' | 'admin';
 
 const props = defineProps<{ users: IBoardMemberSafe[] }>();
 
-const emit = defineEmits<{
-  'delete-project': [id: string];
-}>();
-
 const route = useRoute();
 const projectId = route.params.projectId as string;
 const workspaceId = route.params.workspaceId as string;

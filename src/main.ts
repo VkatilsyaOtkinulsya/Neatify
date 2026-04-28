@@ -1,5 +1,6 @@
 import { createApp } from 'vue';
 import { createPinia } from 'pinia';
+import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 import { QueryClient, VueQueryPlugin } from '@tanstack/vue-query';
 
 import './style.css';
@@ -10,6 +11,7 @@ import { vClickOutside } from '@/shared/directives/clickOutside';
 import { vPermission } from './shared/directives/vPermission.directive';
 
 const pinia = createPinia();
+pinia.use(piniaPluginPersistedstate);
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {

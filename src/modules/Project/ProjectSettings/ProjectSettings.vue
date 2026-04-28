@@ -13,7 +13,7 @@ import Button from '@/components/ui/button/Button.vue';
 import { useUsersStore } from '@/stores/users.store';
 import { Check, CircleUser, Trash2, UserRoundPlus } from 'lucide-vue-next';
 import { storeToRefs } from 'pinia';
-import { computed, reactive, ref, Transition } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import type { MemberRole } from '@/shared/types/user.types';
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue';

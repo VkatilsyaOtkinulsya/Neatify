@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TimingStats } from '@/shared/types/review';
 
-const props = defineProps<TimingStats>();
+defineProps<TimingStats>();
 </script>
 
 <template>

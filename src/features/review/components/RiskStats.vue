@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { RiskStats } from '@/shared/types/review';
 
-const props = defineProps<RiskStats>();
+defineProps<RiskStats>();
 </script>
 
 <template>

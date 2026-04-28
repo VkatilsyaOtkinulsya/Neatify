@@ -1,27 +1,17 @@
 <script setup lang="ts">
-import { computed, provide, watch } from 'vue';
+import { computed, provide } from 'vue';
 import { useRoute } from 'vue-router';
 import { SpaceIcon } from '@/components/icons/index';
 import { useWorkspace } from '@/api/queries/useWorkspace';
 import Loader from '@/components/ui/loader/Loader.vue';
 import Breadcrumb from '@/components/ui/breadcrumb/Breadcrumb.vue';
 
-defineProps<{
-  workspaceId: string;
-}>();
-
 const route = useRoute();
 const workspaceId = computed(() => route.params.workspaceId as string);
 
-const { data: workspace, isLoading, refetch } = useWorkspace(workspaceId);
+const { data: workspace, isLoading } = useWorkspace(workspaceId);
 
 provide('workspace', workspace);
-
-watch(workspaceId, (newId) => {
-  if (newId) {
-    refetch();
-  }
-});
 </script>
 
 <!-- это ХЕДЕР-->

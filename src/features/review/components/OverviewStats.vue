@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { OverviewStats } from '@/shared/types/review';
 
-const props = defineProps<OverviewStats>();
+defineProps<OverviewStats>();
 </script>
 
 <template>
