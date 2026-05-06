@@ -3,11 +3,26 @@ import { useUserAssignedTasks } from '@/api/queries/useTasks';
 import { useRouter } from 'vue-router';
 import { PRIORITY_REVERSE_MAP } from '@/features/task/variables/priority';
 import { STATUS_REVERSE_MAP } from '@/features/task/variables/status';
+import { TaskPriority } from '@/features/task/variables/priority.enum';
 import Badge from '@/components/ui/badge/Badge.vue';
-import { Loader } from '@/components/ui/loader';
 
 const router = useRouter();
 const { data: tasks, isLoading } = useUserAssignedTasks();
+
+const getPriorityColor = (priority: string) => {
+  switch (priority) {
+    case TaskPriority.LOW:
+      return '#4CAF50';
+    case TaskPriority.MEDIUM:
+      return '#FFC107';
+    case TaskPriority.HIGH:
+      return '#FF9800';
+    case TaskPriority.URGENT:
+      return '#F44336';
+    default:
+      return '#999';
+  }
+};
 
 const formatDate = (date: Date | string | undefined) => {
   if (!date) return '';
@@ -68,15 +83,7 @@ const navigateToTask = (task: any) => {
         <div class="task-feed__item-meta">
           <div class="task-feed__item-badges">
             <Badge
-              :color="
-                task.priority === 0
-                  ? '#4CAF50'
-                  : task.priority === 1
-                    ? '#FFC107'
-                    : task.priority === 2
-                      ? '#FF9800'
-                      : '#F44336'
-              "
+              :color="getPriorityColor(task.priority)"
               class="task-feed__badge"
             >
               {{ PRIORITY_REVERSE_MAP[task.priority] }}
