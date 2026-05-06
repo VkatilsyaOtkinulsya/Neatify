@@ -6,10 +6,6 @@ type DragState =
       taskId: string;
       fromColumnId: string;
     }
-  | {
-      type: 'column';
-      columnId: string;
-    }
   | null;
 
 export const useBoardDragStore = defineStore('board-drag', {
@@ -19,7 +15,6 @@ export const useBoardDragStore = defineStore('board-drag', {
 
   getters: {
     isTaskDragging: (state) => state.dragState?.type === 'task',
-    isColumnDragging: (state) => state.dragState?.type === 'column',
   },
 
   actions: {
@@ -29,14 +24,6 @@ export const useBoardDragStore = defineStore('board-drag', {
         type: 'task',
         taskId,
         fromColumnId,
-      };
-    },
-
-    // ---------- COLUMN ----------
-    startColumnDrag(columnId: string) {
-      this.dragState = {
-        type: 'column',
-        columnId,
       };
     },
 

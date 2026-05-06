@@ -34,8 +34,8 @@ const emits = defineEmits<{
   ];
   'update-column': [payload: UpdateColumnPayload];
   'delete-column': [];
-  'column-drag-start': [payload: { columnId: string }];
-  'column-drag-end': [];
+  'move-column-left': [columnId: string];
+  'move-column-right': [columnId: string];
   'edit-task': [taskData: Task];
 }>();
 
@@ -102,14 +102,14 @@ const handleDrop = (index: number) => {
   dragStore.clear();
 };
 
-// ---------- column DnD ----------
+// ---------- column move ----------
 
-const handleColumnDragStart = () => {
-  emits('column-drag-start', { columnId: props.column._id });
+const handleMoveLeft = () => {
+  emits('move-column-left', props.column._id);
 };
 
-const handleColumnDragEnd = () => {
-  emits('column-drag-end');
+const handleMoveRight = () => {
+  emits('move-column-right', props.column._id);
 };
 
 const taskCardData = (task: Task): TaskCardData => ({
@@ -143,12 +143,7 @@ const canDeleteColumn = computed(() => permissionsCtx.can('delete_task'));
 <template>
   <div class="column-container">
     <div class="column" :style="{ backgroundColor: color }">
-      <div
-        class="flex justify-between h-10 px-2 pt-2 cursor-grab active:cursor-grabbing"
-        :draggable="!isEditingColumnTitle"
-        @dragstart="handleColumnDragStart"
-        @dragend="handleColumnDragEnd"
-      >
+      <div class="flex justify-between h-10 px-2 pt-2">
         <p
           v-if="!isEditingColumnTitle"
           @mousedown.stop
@@ -176,6 +171,8 @@ const canDeleteColumn = computed(() => permissionsCtx.can('delete_task'));
                 @delete="emits('delete-column')"
                 @update="emits('update-column', $event)"
                 @open-settings="isColumnSettingsDialogOpen = true"
+                @move-left="handleMoveLeft"
+                @move-right="handleMoveRight"
               />
             </span>
           </div>

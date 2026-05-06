@@ -48,13 +48,13 @@ export const BoardService = {
   },
 
   async createBoardColumn(boardId: string, data: Partial<BoardColumn>): Promise<Board> {
-    const url = buildUrl(BASE_URL, ':boardId/addColumn', { boardId });
+    const url = buildUrl(BASE_URL, ':boardId/columns', { boardId });
     const response = await axiosApiInstance.post(url, data);
     return response.data;
   },
 
   async moveColumn(boardId: string, columnId: string, data: Partial<BoardColumn>): Promise<Board> {
-    const url = buildUrl(BASE_URL, '/:boardId/column/:columnId', { boardId, columnId });
+    const url = buildUrl(BASE_URL, ':boardId/columns/:columnId', { boardId, columnId });
     const response = await axiosApiInstance.patch(url, data);
     return response.data;
   },
@@ -64,13 +64,13 @@ export const BoardService = {
     columnId: string,
     data: Partial<BoardColumn>
   ): Promise<BoardColumn> {
-    const url = buildUrl(BASE_URL, ':boardId/column/:columnId', { boardId, columnId });
+    const url = buildUrl(BASE_URL, ':boardId/columns/:columnId', { boardId, columnId });
     const response = await axiosApiInstance.post(url, data);
     return response.data;
   },
 
   async deleteColumn(boardId: string, columnId: string): Promise<BoardColumn> {
-    const url = buildUrl(BASE_URL, ':boardId/column/:columnId', { boardId, columnId });
+    const url = buildUrl(BASE_URL, ':boardId/columns/:columnId', { boardId, columnId });
     const response = await axiosApiInstance.delete(url);
     return response.data;
   },

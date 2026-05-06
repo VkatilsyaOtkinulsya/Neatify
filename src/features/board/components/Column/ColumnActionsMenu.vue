@@ -5,7 +5,7 @@ import DropdownMenuItem from '@/components/ui/dropdown-menu/DropdownMenuItem.vue
 import DropdownMenuShortcut from '@/components/ui/dropdown-menu/DropdownMenuShortcut.vue';
 import DropdownMenuTrigger from '@/components/ui/dropdown-menu/DropdownMenuTrigger.vue';
 
-import { Bolt, Check, MoreVerticalIcon, Trash2 } from 'lucide-vue-next';
+import { ArrowLeft, ArrowRight, Bolt, MoreVerticalIcon, Trash2 } from 'lucide-vue-next';
 
 const emit = defineEmits(['move-left', 'move-right', 'complete', 'delete', 'open-settings']);
 
@@ -38,12 +38,12 @@ const handleMove = (side: string) => {
     <DropdownMenuContent>
       <DropdownMenuItem v-if="canUpdate" @click="handleMove('left')">
         влево
-        <DropdownMenuShortcut> <Check /> </DropdownMenuShortcut>
+        <DropdownMenuShortcut> <ArrowLeft /> </DropdownMenuShortcut>
       </DropdownMenuItem>
 
       <DropdownMenuItem v-if="canUpdate" @click="handleMove('right')">
         вправо
-        <DropdownMenuShortcut> <Check /> </DropdownMenuShortcut>
+        <DropdownMenuShortcut> <ArrowRight /> </DropdownMenuShortcut>
       </DropdownMenuItem>
 
       <DropdownMenuItem @click="openSettings">

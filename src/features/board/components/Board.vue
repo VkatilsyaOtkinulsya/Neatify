@@ -95,8 +95,6 @@ const openDeleteDialog = (id: string) => {
   isDeleteDialogOpen.value = true;
 };
 
-// ---------- DnD intentions ----------
-
 const handleTaskDrop = (payload: {
   taskId: string;
   fromColumnId: string;
@@ -105,10 +103,6 @@ const handleTaskDrop = (payload: {
   afterTaskId?: string;
 }) => {
   moveTask(payload);
-};
-
-const handleColumnDrop = (columnId: string, toIndex: number) => {
-  moveColumn({ columnId, position: toIndex });
 };
 </script>
 
@@ -119,8 +113,8 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
     <div v-else-if="isError">Error loading board</div>
 
     <div v-else-if="board && tasksData" class="h-full">
-      <ColumnsList :columns="board.columns" :board-id="boardId" @column-drop="handleColumnDrop">
-        <template #column="{ column }">
+      <ColumnsList :columns="board.columns" :board-id="boardId">
+        <template #column="{ column, onMoveLeft, onMoveRight }">
           <Column
             :column="column"
             :color="column.color"
@@ -128,6 +122,8 @@ const handleColumnDrop = (columnId: string, toIndex: number) => {
             @task-drop="handleTaskDrop"
             @update-column="handleUpdateColumn"
             @delete-column="openDeleteDialog(column._id)"
+            @move-column-left="onMoveLeft"
+            @move-column-right="onMoveRight"
             @edit-task="openEdit"
           >
             <template #add-task-button>

@@ -49,13 +49,13 @@ const handleSubmit = () => {
   <Dialog v-model:open="open">
     <DialogContent class="sm:max-w-106.25">
       <form @submit.prevent="handleSubmit">
-        <DialogHeader>
+        <DialogHeader class="mb-3">
           <DialogTitle>Добавить участника</DialogTitle>
           <DialogDescription class="sr-only">
             Введите email и выберите роль нового участника
           </DialogDescription>
         </DialogHeader>
-        <div class="grid gap-4">
+        <div class="grid gap-4 mb-3">
           <div class="grid gap-3">
             <Label for="name-1">Email</Label>
             <Input id="name-1" name="name" v-model="model!.email" />
