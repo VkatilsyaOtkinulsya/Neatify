@@ -64,7 +64,7 @@ const routes: RouteRecordRaw[] = [
               {
                 path: 'board',
                 name: 'board',
-                component: () => import('@/features/board/components/Board.vue'),
+                component: () => import('@/features/board/components/BoardWrapper.vue'),
                 beforeEnter: requirePermission('view_project'),
                 meta: { crumb: 'board', title: 'Доска' },
               },

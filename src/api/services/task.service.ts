@@ -20,7 +20,7 @@ export const TaskService = {
   ...baseService,
 
   async getAssignedTasks(): Promise<{ success: boolean; tasks: AssignedTask[] }> {
-    const response = await axiosApiInstance.get(BASE_URL);
+    const response = await axiosApiInstance.get(`${BASE_URL}/assigned`);
     return response.data;
   },
 

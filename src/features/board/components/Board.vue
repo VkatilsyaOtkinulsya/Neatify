@@ -108,9 +108,7 @@ const handleTaskDrop = (payload: {
 
 <template>
   <div class="board-wrapper">
-    <BoardSkeleton v-if="isLoadingBoard || isLoadingTasks" />
-
-    <div v-else-if="isError">Error loading board</div>
+    <div v-if="isError">Error loading board</div>
 
     <div v-else-if="board && tasksData" class="h-full">
       <ColumnsList :columns="board.columns" :board-id="boardId">
