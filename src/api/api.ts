@@ -1,7 +1,7 @@
 import { useAuthStore } from '@/stores/auth.store';
 import axios, { type InternalAxiosRequestConfig } from 'axios';
 import router from '@/router';
-import { handleErrorResponse } from '@/shared/lib/utils/error-handler';
+import { handleApiError } from '@/shared/lib/utils/error-handler';
 
 const API_URL = import.meta.env.VITE_API_URL;
 const API_AUTH_URL = import.meta.env.VITE_API_AUTH_URL;
@@ -94,7 +94,7 @@ axiosApiInstance.interceptors.response.use(
       }
     }
 
-    handleErrorResponse(error);
+    handleApiError(error);
 
     return Promise.reject(error);
   }

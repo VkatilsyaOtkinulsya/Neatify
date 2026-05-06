@@ -5,108 +5,88 @@ type ErrorHandlerOptions = {
   silent?: boolean;
   context?: string;
   retry?: boolean;
+  retryCallback?: () => void;
   maxRetries?: number;
 };
 
-type HttpStatusHandler = {
-  status: number;
+type ErrorConfig = {
   message: string;
   shouldRetry?: boolean;
   retryDelay?: number;
 };
 
-/**
- * Обработчики для конкретных HTTP статусов
- */
-const HTTP_STATUS_HANDLERS: Record<number, HttpStatusHandler> = {
+const HTTP_STATUS_CONFIGS: Record<number, ErrorConfig> = {
   400: {
-    status: 400,
     message: 'Неверный запрос. Проверьте введенные данные.',
     shouldRetry: false,
   },
   401: {
-    status: 401,
     message: 'Необходима авторизация. Пожалуйста, войдите в систему.',
     shouldRetry: false,
   },
   403: {
-    status: 403,
     message: 'Доступ запрещен. У вас нет прав для выполнения этого действия.',
     shouldRetry: false,
   },
   404: {
-    status: 404,
     message: 'Запрашиваемый ресурс не найден.',
     shouldRetry: false,
   },
   408: {
-    status: 408,
     message: 'Время ожидания запроса истекло. Попробуйте еще раз.',
     shouldRetry: true,
     retryDelay: 2000,
   },
   429: {
-    status: 429,
     message: 'Слишком много запросов. Попробуйте через некоторое время.',
     shouldRetry: true,
     retryDelay: 5000,
   },
   500: {
-    status: 500,
     message: 'Внутренняя ошибка сервера. Попробуйте позже.',
     shouldRetry: true,
     retryDelay: 3000,
   },
   502: {
-    status: 502,
     message: 'Сервер временно недоступен. Попробуйте позже.',
     shouldRetry: true,
     retryDelay: 5000,
   },
   503: {
-    status: 503,
     message: 'Сервис временно недоступен. Попробуйте позже.',
     shouldRetry: true,
     retryDelay: 3000,
   },
   504: {
-    status: 504,
     message: 'Время ожидания ответа сервера истекло. Попробуйте позже.',
     shouldRetry: true,
     retryDelay: 3000,
   },
 };
 
-/**
- * Обработка сетевых ошибок
- */
-const NETWORK_ERROR_HANDLERS: Record<string, HttpStatusHandler> = {
+const NETWORK_ERROR_CONFIGS: Record<string, ErrorConfig> = {
   NetworkError: {
-    status: 0,
     message: 'Ошибка сети. Проверьте подключение к интернету.',
     shouldRetry: true,
     retryDelay: 2000,
   },
   TimeoutError: {
-    status: 0,
     message: 'Превышено время ожидания. Попробуйте еще раз.',
     shouldRetry: true,
     retryDelay: 2000,
   },
 };
 
-/**
- * Логирование ошибок в зависимости от окружения
- */
 function logError(error: unknown, context: string, status?: number): void {
   const isDevelopment = import.meta.env.DEV;
+  const statusStr = status ? `[${status}]` : '';
+  const contextStr = context ? `- ${context}` : '';
 
   if (isDevelopment) {
-    console.group(`🚨 API Error ${status ? `[${status}]` : ''} - ${context}`);
+    console.group(`🚨 API Error ${statusStr} ${contextStr}`);
     console.error('Error details:', error);
     console.groupEnd();
   } else {
-    // В продакшене отправляем ошибки в сервис мониторинга
     console.error(`API Error [${status || 'unknown'}]:`, {
       context,
       error: error instanceof Error ? error.message : 'Unknown error',
@@ -115,9 +95,6 @@ function logError(error: unknown, context: string, status?: number): void {
   }
 }
 
-/**
- * Показ уведомления пользователю
- */
 function showUserNotification(message: string, type: 'error' | 'success' = 'error'): void {
   if (import.meta.env.DEV) {
     console[type === 'error' ? 'error' : 'log'](`Notification: ${message}`);
@@ -125,53 +102,33 @@ function showUserNotification(message: string, type: 'error' | 'success' = 'erro
   showNotification(message, type);
 }
 
-/**
- * Обработка конкретных HTTP статусов
- */
-function handleHttpStatusError(
-  status: number,
-  error: AxiosError
-): { message: string; shouldRetry: boolean; retryDelay?: number } {
-  const handler = HTTP_STATUS_HANDLERS[status];
+function getServerMessage(error: AxiosError): string {
+  const data = error.response?.data;
+  if (data && typeof data === 'object' && 'message' in data) {
+    return (data as { message: string }).message;
+  }
+  return error.message;
+}
 
-  if (handler) {
-    return {
-      message: handler.message,
-      shouldRetry: handler.shouldRetry || false,
-      retryDelay: handler.retryDelay,
-    };
+function handleHttpStatusError(status: number, error: AxiosError): ErrorConfig {
+  const config = HTTP_STATUS_CONFIGS[status];
+
+  if (config) {
+    return config;
   }
 
-  // Обработка неизвестных статусов
-  const serverMessage =
-    error.response?.data &&
-    typeof error.response.data === 'object' &&
-    'message' in error.response.data
-      ? (error.response.data as { message: string }).message
-      : error.message;
   return {
-    message: `Ошибка сервера (${status}): ${serverMessage}`,
+    message: `Ошибка сервера (${status}): ${getServerMessage(error)}`,
     shouldRetry: false,
   };
 }
 
-/**
- * Обработка сетевых ошибок
- */
-function handleNetworkError(error: AxiosError): {
-  message: string;
-  shouldRetry: boolean;
-  retryDelay?: number;
-} {
+function handleNetworkError(error: AxiosError): ErrorConfig {
   const code = error.code || 'Unknown';
-  const handler = NETWORK_ERROR_HANDLERS[code];
+  const config = NETWORK_ERROR_CONFIGS[code];
 
-  if (handler) {
-    return {
-      message: handler.message,
-      shouldRetry: handler.shouldRetry || false,
-      retryDelay: handler.retryDelay,
-    };
+  if (config) {
+    return config;
   }
 
   return {
@@ -181,15 +138,15 @@ function handleNetworkError(error: AxiosError): {
   };
 }
 
-/**
- * Основная функция обработки ошибок API
- */
 export function handleApiError(error: unknown, options: ErrorHandlerOptions = {}): void {
-  const { silent = false, context = '', retry = false, maxRetries = 3 } = options;
+  const { silent = false, context = '', retry = false, retryCallback, maxRetries = 3 } = options;
 
-  // Логируем ошибку
   if (!silent) {
-    logError(error, context);
+    let status: number | undefined;
+    if (error instanceof AxiosError) {
+      status = error.response?.status;
+    }
+    logError(error, context, status);
   }
 
   if (silent) return;
@@ -200,55 +157,45 @@ export function handleApiError(error: unknown, options: ErrorHandlerOptions = {}
 
   if (error instanceof AxiosError) {
     const status = error.response?.status;
-    const isNetworkError = !status && error.code;
 
-    if (isNetworkError) {
-      // Обработка сетевых ошибок
-      const networkResult = handleNetworkError(error);
-      message = networkResult.message;
-      shouldRetry = networkResult.shouldRetry;
-      retryDelay = networkResult.retryDelay || 2000;
-    } else if (status) {
-      // Обработка HTTP ошибок
-      const statusResult = handleHttpStatusError(status, error);
-      message = statusResult.message;
-      shouldRetry = statusResult.shouldRetry;
-      retryDelay = statusResult.retryDelay || 2000;
+    if (status) {
+      const config = handleHttpStatusError(status, error);
+      message = config.message;
+      shouldRetry = config.shouldRetry || false;
+      retryDelay = config.retryDelay || 2000;
+    } else if (error.code) {
+      const config = handleNetworkError(error);
+      message = config.message;
+      shouldRetry = config.shouldRetry || false;
+      retryDelay = config.retryDelay || 2000;
     } else {
-      // Обработка других Axios ошибок
       message = `Ошибка запроса: ${error.message}`;
     }
-  } else if (error instanceof AxiosError && error.response?.data) {
-    // Безопасное получение сообщения из ответа сервера
-    const serverMessage = (error.response.data as { message?: string })?.message;
-    message = `Ошибка сервера: ${serverMessage || error.message}`;
   } else if (error instanceof Error) {
-    message = `${context}: ${error.message}`;
+    message = error.message;
   }
 
-  // Добавляем контекст к сообщению
   if (context) {
     message = `${context}: ${message}`;
   }
 
   showUserNotification(message, 'error');
 
-  // Автоматический retry для некоторых ошибок
-  if (retry && shouldRetry && maxRetries > 0) {
+  if (retry && shouldRetry && maxRetries > 0 && retryCallback) {
     setTimeout(() => {
-      showUserNotification(`Повторная попытка... (${maxRetries} осталось)`, 'error');
-      // Здесь можно вызвать callback для повторного запроса
+      showUserNotification(`Повторная попытка... (${maxRetries - 1} осталось)`, 'error');
+      retryCallback();
     }, retryDelay);
   }
 }
 
 let notificationComponent: NotificationComponent | null;
 
-export function registerNotificationComponent(component: NotificationComponent) {
+export function registerNotificationComponent(component: NotificationComponent): void {
   notificationComponent = component;
 }
 
-export function showNotification(message: string, type: 'error' | 'success' = 'error') {
+export function showNotification(message: string, type: 'error' | 'success' = 'error'): void {
   if (notificationComponent) {
     notificationComponent.show(message, type);
   } else {
@@ -256,22 +203,3 @@ export function showNotification(message: string, type: 'error' | 'success' = 'e
     console[type === 'error' ? 'error' : 'log'](message);
   }
 }
-
-export const handleErrorResponse = (error: AxiosError) => {
-  const status = error.response?.status;
-  const url = error.config?.url;
-
-  switch (status) {
-    case 403:
-      console.error('Access forbidden:', error.response?.data);
-      break;
-    case 404:
-      console.error(`Resource not found: ${url}`);
-      break;
-    case 500:
-      console.error('Server error:', error.response?.data);
-      break;
-    default:
-      console.error(`HTTP Error ${status}:`, error.response?.data);
-  }
-};

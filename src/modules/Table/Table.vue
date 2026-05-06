@@ -18,6 +18,8 @@ import { useUsersStore } from '@/stores/users.store';
 import { storeToRefs } from 'pinia';
 import { useTaskModal } from '@/features/board/composables/useTaskModal';
 import { useBoardTasks } from '@/features/board/composables/useBoardTasks';
+import { useTableFilters } from './useTableFilters';
+import TableFilters from './TableFilters.vue';
 
 import {
   AlertDialog,
@@ -69,6 +71,10 @@ const usersStore = useUsersStore();
 const { users } = storeToRefs(usersStore);
 
 const tasksByColumn = computed(() => tasksData.value?.tasksByColumn ?? {});
+
+const { searchQueryRaw, selectedTags, availableTags, toggleTag, applyFilters } =
+  useTableFilters(tasksByColumn);
+
 const tasksByColumnTitle = computed(() => {
   if (!project.value?.columns || !tasksData.value?.tasksByColumn) return [];
 
@@ -79,12 +85,12 @@ const tasksByColumnTitle = computed(() => {
       tasks = tasks.filter((task) => task.completedAt === null);
     }
 
-    return {
-      id: column._id,
-      title: column.title,
-      tasks,
-    };
+    return { id: column._id, title: column.title, tasks };
   });
+});
+
+const filteredColumns = computed(() => {
+  return applyFilters(tasksByColumnTitle.value);
 });
 
 const usersMap = computed(() => {
@@ -111,6 +117,15 @@ const usersMap = computed(() => {
         <input v-model="showCompletedTasks" type="checkbox" name="showCompleted" id="" />
         <label for="showCompleted">Показать выполненные задачи</label>
       </div>
+
+      <TableFilters
+        :search-query="searchQueryRaw"
+        :selected-tags="selectedTags"
+        :available-tags="availableTags"
+        @update:search-query="searchQueryRaw = $event"
+        @toggle-tag="toggleTag"
+      />
+
       <Table v-if="project" class="table-fixed w-full">
         <TableHeader>
           <TableRow>
@@ -124,7 +139,7 @@ const usersMap = computed(() => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <template v-for="column in tasksByColumnTitle" :key="column.id">
+          <template v-for="column in filteredColumns" :key="column.id">
             <TableRow>
               <TableCell colspan="7" class="font-bold bg-muted">
                 {{ column.title }} ({{ column.tasks.length }} задач)

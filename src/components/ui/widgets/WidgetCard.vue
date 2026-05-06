@@ -7,7 +7,7 @@ interface Props {
   isMinimized: boolean;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 const emit = defineEmits<{
   remove: [];
