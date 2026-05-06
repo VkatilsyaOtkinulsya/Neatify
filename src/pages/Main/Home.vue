@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import Footer from '@/components/Footer.vue';
 import Header from '@/components/Header.vue';
+import TaskFeedContent from '@/modules/TaskFeed/TaskFeedContent.vue';
 
 import { useGreeting, useCurrentTime } from '@/shared/lib/utils/useGreetingDate';
 import { useAuthStore } from '@/stores/auth.store';
@@ -21,7 +22,9 @@ const { formatdate, getGreeting } = useGreeting(userName);
         <p class="date">{{ formatdate(currentTime) }}</p>
         <h1>{{ getGreeting(currentTime) }}</h1>
       </div>
-      <div class="main__content"></div>
+      <div class="main__content">
+        <TaskFeedContent />
+      </div>
     </div>
     <Footer title="Footer"
       ><template #content>Footer на всякий случай, если он конечно нужен</template></Footer

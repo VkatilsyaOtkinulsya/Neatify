@@ -7,12 +7,22 @@ import { buildUrl } from '@/shared/lib/utils/buildUrl';
 
 const BASE_URL = import.meta.env.VITE_API_TASKS_URL as string;
 
+export type AssignedTask = Task & {
+  workspaceId: string;
+  boardTitle: string;
+};
+
 export const baseService = createApiService<Task, TaskPayloadBase, Partial<TaskPayloadBase>>(
   BASE_URL
 );
 
 export const TaskService = {
   ...baseService,
+
+  async getAssignedTasks(): Promise<{ success: boolean; tasks: AssignedTask[] }> {
+    const response = await axiosApiInstance.get(BASE_URL);
+    return response.data;
+  },
 
   async getBoardTasks(boardId: string): Promise<BoardTasksResponse> {
     const url = buildUrl(BASE_URL, 'boards/:boardId/tasks', { boardId });

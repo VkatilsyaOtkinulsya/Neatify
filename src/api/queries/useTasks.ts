@@ -11,6 +11,7 @@ export type CreateTaskPayload = Omit<Partial<Task>, 'checklist'> & {
 
 export const taskKeys = {
   all: ['tasks'] as const,
+  assigned: () => ['assigned-tasks'] as const,
   byBoard: (boardId?: string) => ['Board tasks', boardId] as const,
 };
 
@@ -179,4 +180,22 @@ export function useMoveTask(boardId: string) {
       await queryClient.refetchQueries({ queryKey: taskKeys.byBoard(boardId) });
     },
   });
+}
+
+export function useUserAssignedTasks() {
+  const { data, isLoading, isError, refetch } = useQuery({
+    queryKey: taskKeys.assigned(),
+    queryFn: async () => {
+      const response = await TaskService.getAssignedTasks();
+      return response.tasks.sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      });
+    },
+    staleTime: 60 * 1000,
+  });
+
+  return { data, isLoading, isError, refetch };
 }
