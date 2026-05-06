@@ -60,7 +60,7 @@ const canDelete = computed(() => permissionsCtx.can('delete_task'));
     @dragstart="canMove && emit('drag-start')"
     @dragend="emit('drag-end')"
   >
-    <div class="flex w-full gap-1 opacity-90 mb-2 pr-8">
+    <div v-if="task.tags && task.tags.length > 0" class="flex w-full gap-1 opacity-90 mb-2 pr-8">
       <Badge
         v-for="b in task.tags"
         :key="b.title"
@@ -69,7 +69,7 @@ const canDelete = computed(() => permissionsCtx.can('delete_task'));
         >{{ b.title }}</Badge
       >
     </div>
-    <div class="w-full flex justify-between mb-1">
+    <div class="w-full flex justify-between mb-1 pr-6">
       <div class="flex relative items-start justify-between">
         <div
           ref="elRef"
@@ -108,7 +108,7 @@ const canDelete = computed(() => permissionsCtx.can('delete_task'));
       </div>
     </div>
 
-    <!-- Actinos -->
+    <!-- Actions -->
     <div class="absolute top-0 right-0 cursor-pointer rounded-full">
       <span aria-label="Изменить карточку">
         <TaskActionsMenu

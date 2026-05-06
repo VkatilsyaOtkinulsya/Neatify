@@ -19,16 +19,13 @@ const { formatdate, getGreeting } = useGreeting(userName);
 
     <div class="main__container">
       <div class="main__content-welcome">
-        <p class="date">{{ formatdate(currentTime) }}</p>
-        <h1>{{ getGreeting(currentTime) }}</h1>
+        <p class="welcome-date">{{ formatdate(currentTime) }}</p>
+        <h1 class="welcome-greeting">{{ getGreeting(currentTime) }}</h1>
       </div>
       <div class="main__content">
         <TaskFeedContent />
       </div>
     </div>
-    <Footer title="Footer"
-      ><template #content>Footer на всякий случай, если он конечно нужен</template></Footer
-    >
   </section>
 </template>
 

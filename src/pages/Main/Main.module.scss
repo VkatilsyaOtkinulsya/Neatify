@@ -29,6 +29,24 @@ $breakpoint-mobile: 576px;
       text-align: center;
       font-family: 'Roboto', sans-serif;
       padding-top: 20px;
+      margin-bottom: 16px;
+
+      .welcome-date {
+        font-size: 14px;
+        font-weight: 500;
+        color: #666;
+        text-transform: capitalize;
+        margin: 0 0 8px 0;
+        letter-spacing: 0.5px;
+      }
+
+      .welcome-greeting {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.2;
+      }
     }
 
     .main__content {
@@ -45,7 +63,7 @@ $breakpoint-mobile: 576px;
     }
 
     @media (min-width: $breakpoint-desktop) {
-      padding: 0 124px;
+      padding: 0 4rem;
     }
   }
 }
