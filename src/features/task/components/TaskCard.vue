@@ -7,7 +7,7 @@ import { TaskPriorityMap } from '../types/priority.config';
 import Tooltip from '@/components/ui/tooltip/Tooltip.vue';
 import { CircleUser, Clock, Paperclip, SquareCheckBig } from 'lucide-vue-next';
 import type { TaskCardData } from '../types/task.types';
-import { df } from '@/shared/lib/utils/formatDate';
+import { DateFormatter } from '@internationalized/date';
 import { PERMISSIONS_KEY } from '@/shared/permissions/permissionsKey';
 
 const props = defineProps<{
@@ -38,6 +38,13 @@ const handleComplete = () => {
 
 const priorityComponent = computed(() => {
   return TaskPriorityMap[task.priority] ?? null;
+});
+
+const dfWithTime = new DateFormatter('ru-RU', {
+  day: 'numeric',
+  month: 'long',
+  hour: '2-digit',
+  minute: '2-digit',
 });
 
 const permissionsCtx = inject(PERMISSIONS_KEY)!;
@@ -96,7 +103,7 @@ const canDelete = computed(() => permissionsCtx.can('delete_task'));
       <div v-if="task.assignees" class="absolute top-0 -left-1 opacity-90"><CircleUser /></div>
       <div v-if="task.dueDate" class="flex items-center ml-7 p-0.75 rounded-xs bg-amber-400">
         <Clock class="w-4 h-4 mr-0.5" />
-        <p class="text-xs">{{ df.format(new Date(task.dueDate)) }}</p>
+        <p class="text-xs">{{ dfWithTime.format(new Date(task.dueDate)) }}</p>
       </div>
       <div v-if="task.checklist" class="flex">
         <SquareCheckBig class="w-4 h-4" />

@@ -27,13 +27,21 @@ export function useDateRange(
   };
 
   // DateValue -> Date + время
-  const dateValueToDate = (dateValue?: DateValue, hours?: number): Date | undefined => {
+  const dateValueToDate = (
+    dateValue?: DateValue,
+    existingDate?: Date,
+    defaultHours: number = 9
+  ): Date | undefined => {
     if (!dateValue) return undefined;
 
     const date = dateValue.toDate(timezone);
 
-    if (hours !== undefined) {
-      date.setHours(hours, 0, 0, 0);
+    // Если есть существующая дата с временем, используем её время
+    if (existingDate) {
+      date.setHours(existingDate.getHours(), existingDate.getMinutes(), 0, 0);
+    } else {
+      // Иначе используем дефолтное время
+      date.setHours(defaultHours, 0, 0, 0);
     }
 
     return date;
@@ -51,14 +59,48 @@ export function useDateRange(
     },
 
     set: (range) => {
+      const currentValue = unref(modelValue);
       emit({
-        startDate: dateValueToDate(range?.start, 9), // 🔥 9:00
-        dueDate: dateValueToDate(range?.end, 17), // 🔥 17:00
+        startDate: dateValueToDate(range?.start, currentValue.startDate, 9),
+        dueDate: dateValueToDate(range?.end, currentValue.dueDate, 17),
       });
     },
   });
 
+  // Date -> "HH:mm" string
+  const dateToTimeString = (date?: Date): string => {
+    if (!date) return '09:00';
+    const hours = date.getHours().toString().padStart(2, '0');
+    const minutes = date.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+  };
+
+  // "HH:mm" string -> обновить Date
+  const updateDateTime = (date: Date | undefined, timeString: string): Date => {
+    if (!timeString || !timeString.includes(':')) {
+      // Если время не указано, используем дефолтное
+      const newDate = date ? new Date(date) : new Date();
+      newDate.setHours(9, 0, 0, 0);
+      return newDate;
+    }
+
+    const [hours, minutes] = timeString.split(':').map(Number);
+
+    // Проверяем валидность часов и минут
+    if (isNaN(hours) || isNaN(minutes)) {
+      const newDate = date ? new Date(date) : new Date();
+      newDate.setHours(9, 0, 0, 0);
+      return newDate;
+    }
+
+    const newDate = date ? new Date(date) : new Date();
+    newDate.setHours(hours, minutes, 0, 0);
+    return newDate;
+  };
+
   return {
     rangeValue,
+    dateToTimeString,
+    updateDateTime,
   };
 }
