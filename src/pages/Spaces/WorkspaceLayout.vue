@@ -36,7 +36,7 @@ provide('workspace', workspace);
 .workspace-wrapper {
   width: 100%;
   height: 100vh;
-  background-color: rgb(241, 255, 239);
+  background-color: #f1ffef;
   box-sizing: border-box;
 }
 .workspace-container {

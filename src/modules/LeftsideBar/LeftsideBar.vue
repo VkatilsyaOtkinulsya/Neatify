@@ -11,7 +11,9 @@ import {
   SignoutIcon,
   MainIcon,
   ToggleIcon,
+  ProjectItemIcon,
 } from '@/components/icons/index.ts';
+import { Target } from 'lucide-vue-next';
 import { defineAsyncComponent, ref } from 'vue';
 import { useAuthStore } from '@/stores/auth.store';
 import { useCreateWorkspace } from '@/api/queries/useWorkspace';
@@ -36,9 +38,18 @@ const create = useCreateWorkspace();
 const isOpened = ref(false);
 const showModal = ref(false);
 const elRef = ref<HTMLElement | null>(null);
+const expandedWorkspaces = ref<Set<string>>(new Set());
 
 const toggleSidebar = () => {
   isOpened.value = !isOpened.value;
+};
+
+const toggleWorkspace = (workspaceId: string) => {
+  if (expandedWorkspaces.value.has(workspaceId)) {
+    expandedWorkspaces.value.delete(workspaceId);
+  } else {
+    expandedWorkspaces.value.add(workspaceId);
+  }
 };
 
 const logout = () => {
@@ -115,25 +126,49 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
             </div>
             <Loader v-if="showLoader" color="#fff" />
             <div v-else class="space-list">
-              <router-link
+              <div
                 v-for="(workspace, index) in spaces"
                 :key="workspace.id"
-                :to="{
-                  name: 'workspace-projects',
-                  params: { workspaceId: workspace.id },
-                }"
+                class="space-list__item"
               >
-                <SpaceItem
-                  :workspace="{ id: workspace.id, name: workspace.title }"
-                  :index
-                  :isOpened
+                <div @click="toggleWorkspace(workspace.id)">
+                  <SpaceItem
+                    :workspace="{ id: workspace.id, name: workspace.title }"
+                    :index
+                    :isOpened
+                  >
+                    <template #icon>
+                      <SpaceIcon />
+                    </template>
+                    <template #label> {{ workspace.title }} </template>
+                  </SpaceItem>
+                </div>
+                <div
+                  v-if="expandedWorkspaces.has(workspace.id)"
+                  class="workspace-submenu"
                 >
-                  <template #icon>
-                    <SpaceIcon />
-                  </template>
-                  <template #label> {{ workspace.title }} </template>
-                </SpaceItem>
-              </router-link>
+                  <router-link
+                    :to="{
+                      name: 'workspace-projects',
+                      params: { workspaceId: workspace.id },
+                    }"
+                  >
+                    <NavItem label="Проекты" tooltipText="Проекты" :isOpened>
+                      <template #icon><ProjectItemIcon /></template>
+                    </NavItem>
+                  </router-link>
+                  <router-link
+                    :to="{
+                      name: 'workspace-objectives',
+                      params: { workspaceId: workspace.id },
+                    }"
+                  >
+                    <NavItem label="Цели" tooltipText="Цели" :isOpened>
+                      <template #icon><Target :size="18" /></template>
+                    </NavItem>
+                  </router-link>
+                </div>
+              </div>
             </div>
           </div>
         </div>
