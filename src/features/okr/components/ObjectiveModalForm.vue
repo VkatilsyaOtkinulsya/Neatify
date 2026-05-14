@@ -1,12 +1,20 @@
 <script setup lang="ts">
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import DateRangePicker from '@/features/task/components/TaskModal/DateRangePicker.vue';
 import { useObjectiveForm } from '@/features/okr/composables/useObjectiveForm';
 import { Plus } from 'lucide-vue-next';
+import type { CreateObjectiveDto } from '../types/okr.types';
+import DialogDescription from '@/components/ui/dialog/DialogDescription.vue';
 
 interface Props {
   open: boolean;
@@ -19,7 +27,7 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   (e: 'update:open', value: boolean): void;
-  (e: 'submit', data: ReturnType<typeof useObjectiveForm>['getFormDto']): void;
+  (e: 'submit', data: CreateObjectiveDto): void;
 }>();
 
 const { formData, resetForm, isFormValid, getFormDto } = useObjectiveForm();
@@ -53,6 +61,7 @@ const handleCancel = () => {
     <DialogContent class="sm:max-w-[500px]">
       <DialogHeader>
         <DialogTitle>Создать новую цель</DialogTitle>
+        <DialogDescription class="sr-only">Форма цели</DialogDescription>
       </DialogHeader>
       <div class="objective-form">
         <div class="form-field">
@@ -78,10 +87,7 @@ const handleCancel = () => {
         </div>
         <div class="form-actions">
           <Button variant="outline" @click="handleCancel">Отмена</Button>
-          <Button
-            @click="handleSubmit"
-            :disabled="!isFormValid() || isPending"
-          >
+          <Button @click="handleSubmit" :disabled="!isFormValid() || isPending">
             {{ isPending ? 'Создание...' : 'Создать' }}
           </Button>
         </div>

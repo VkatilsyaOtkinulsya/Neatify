@@ -82,3 +82,21 @@ export interface UpdateKeyResultDto {
 export interface UpdateMetricDto {
   current: number | boolean;
 }
+
+export const KR_STATUS_LABELS: Record<KeyResult['status'], string> = {
+  not_started: 'Не начат',
+  on_track: 'В процессе',
+  at_risk: 'Под угрозой',
+  off_track: 'Отстаёт',
+  completed: 'Завершён',
+  cancelled: 'Отменён',
+};
+
+export const KR_STATUS_COLORS: Record<KeyResult['status'], string> = {
+  not_started: '#9e9e9e',
+  on_track: '#4caf50',
+  at_risk: '#ff9800',
+  off_track: '#f44336',
+  completed: '#2196f3',
+  cancelled: '#757575',
+};

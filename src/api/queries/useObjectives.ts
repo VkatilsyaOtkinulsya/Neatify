@@ -154,6 +154,27 @@ export function useStartKeyResult(workspaceId: Ref<string>, objectiveId: Ref<str
   });
 }
 
+export function useDeleteKeyResult(workspaceId: Ref<string>, objectiveId: Ref<string>) {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (krId: string) =>
+      ObjectivesService.deleteKeyResult(workspaceId.value, objectiveId.value, krId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: objectiveKeys.detail(workspaceId.value, objectiveId.value),
+      });
+      queryClient.invalidateQueries({ queryKey: objectiveKeys.all(workspaceId.value) });
+      showNotification('Ключевой результат удален', 'success');
+    },
+
+    onError: (err) => {
+      handleApiError(err);
+    },
+  });
+}
+
 export function useUpdateMetric(workspaceId: Ref<string>, objectiveId: Ref<string>) {
   const queryClient = useQueryClient();
 
