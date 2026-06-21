@@ -269,7 +269,8 @@ watch([from, to], () => {
   max-width: 960px;
   margin: 0 auto;
   padding: 32px 24px;
-  min-height: 100vh;
+  height: 100%;
+  overflow-y: auto;
   background: var(--background, #f5f5f5);
 }
 
@@ -353,7 +354,7 @@ watch([from, to], () => {
 
 .projects-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
 }
 
