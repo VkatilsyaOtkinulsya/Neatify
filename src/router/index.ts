@@ -44,6 +44,13 @@ const routes: RouteRecordRaw[] = [
             meta: { crumb: 'projects', title: 'Проекты' },
           },
           {
+            path: 'objectives',
+            name: 'workspace-objectives',
+            component: () => import('@/modules/Objectives/ObjectivesAndKeyResults.vue'),
+            props: true,
+            meta: { crumb: 'objectives', title: 'Цели' },
+          },
+          {
             path: ':projectId',
             component: () => import('@/modules/Project/ProjectDetails.vue'),
             children: [

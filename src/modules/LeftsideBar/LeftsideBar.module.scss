@@ -148,6 +148,36 @@
     transition: all 1s ease-in-out;
 
     .space-list {
+      .space-list__item {
+        display: flex;
+        flex-direction: column;
+      }
+
+      .workspace-submenu {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 2px;
+        border-left: 2px solid rgba(153, 153, 153, 0.3);
+        margin-left: 12px;
+        animation: slideDown 0.2s ease-out;
+
+        a {
+          text-decoration: none;
+          padding-left: 6px;
+        }
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
     }
 
     .space-list__title {
@@ -279,6 +309,12 @@
         gap: 0;
         margin-left: 2px;
       }
+    }
+  }
+
+  .content__space-list {
+    .workspace-submenu {
+      margin-left: 6px;
     }
   }
 

@@ -20,7 +20,7 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <a ref="elRef" :href="'/space/' + workspace.id + '/projects'" class="nav-item">
+  <div ref="elRef" class="nav-item">
     <div class="icon-wrapper">
       <slot name="icon"></slot>
     </div>
@@ -35,7 +35,7 @@ withDefaults(defineProps<Props>(), {
       :disabled="isOpened"
     >
     </Tooltip>
-  </a>
+  </div>
 </template>
 
 <style scoped lang="scss">
