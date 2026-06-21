@@ -7,6 +7,7 @@ import type { Board } from '@/features/board/types/board.types'
 import type { ContributorStats } from '@/features/board/types/contributor.types'
 import { useRouter } from 'vue-router'
 import { format } from 'date-fns'
+import { formatCycleTime, formatRate } from '@/shared/lib/utils/formatCycleTime'
 
 interface ProjectStat {
   boardId: string
@@ -119,17 +120,6 @@ function navigateToProject(project: ProjectStat) {
       projectId: project.boardId,
     },
   })
-}
-
-function formatCycleTime(hours: number | null): string {
-  if (hours == null || isNaN(hours)) return '—'
-  if (hours < 24) return `${hours.toFixed(1)} ч`
-  return `${(hours / 24).toFixed(1)} д`
-}
-
-function formatRate(rate: number | null): string {
-  if (rate == null || isNaN(rate)) return '—'
-  return `${Math.round(rate)}%`
 }
 
 onMounted(() => {

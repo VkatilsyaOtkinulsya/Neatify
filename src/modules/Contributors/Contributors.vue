@@ -7,6 +7,7 @@ import { useUsersStore } from '@/stores/users.store'
 import { BoardService } from '@/api/services/board.service'
 import { PERMISSIONS_KEY, type PermissionsContext } from '@/shared/permissions/permissionsKey'
 import type { ContributorStats } from '@/features/board/types/contributor.types'
+import { formatCycleTime, formatRate } from '@/shared/lib/utils/formatCycleTime'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -73,17 +74,6 @@ onMounted(() => {
 watch([from, to], () => {
   fetchContributors()
 })
-
-function formatCycleTime(hours: number | null): string {
-  if (hours == null || isNaN(hours)) return '—'
-  if (hours < 24) return `${hours.toFixed(1)} ч`
-  return `${(hours / 24).toFixed(1)} д`
-}
-
-function formatRate(rate: number | null): string {
-  if (rate == null || isNaN(rate)) return '—'
-  return `${Math.round(rate)}%`
-}
 </script>
 
 <template>
