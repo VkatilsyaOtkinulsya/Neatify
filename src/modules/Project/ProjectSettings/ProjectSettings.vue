@@ -88,7 +88,7 @@ const handleAddMember = () => {
             <td v-if="user.profile.avatar">{{ user.profile.avatar }}</td>
             <td v-else><CircleUser /></td>
 
-            <td>{{ user.profile.displayName ? user.profile.firstName : 'болванка' }}</td>
+            <td>{{ user.profile.displayName }}</td>
             <td>{{ user.role }}</td>
             <td @click.stop="openDeleteDialog(user.userId)"><Trash2 /></td>
           </tr>
