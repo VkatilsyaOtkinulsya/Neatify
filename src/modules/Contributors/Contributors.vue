@@ -3,17 +3,24 @@ import { ref, computed, inject, onMounted, watch } from 'vue'
 import { useRoute } from 'vue-router'
 import { format } from 'date-fns'
 import { useAuthStore } from '@/stores/auth.store'
+import { useUsersStore } from '@/stores/users.store'
 import { BoardService } from '@/api/services/board.service'
 import { PERMISSIONS_KEY, type PermissionsContext } from '@/shared/permissions/permissionsKey'
 import type { ContributorStats } from '@/features/board/types/contributor.types'
 
 const route = useRoute()
 const authStore = useAuthStore()
+const usersStore = useUsersStore()
 
 const boardId = computed(() => route.params.projectId as string)
 
 const permissionsCtx = inject<PermissionsContext>(PERMISSIONS_KEY)
 const isAdmin = computed(() => permissionsCtx?.can('manage_members') ?? false)
+
+function getDisplayName(userId: string): string {
+  const member = usersStore.getUser(userId)
+  return member?.profile?.displayName || member?.profile?.firstName || userId
+}
 
 const defaultFrom = computed(() => {
   const d = new Date()
@@ -111,7 +118,7 @@ function formatRate(rate: number): string {
         </thead>
         <tbody>
           <tr v-for="c in contributors" :key="c.userId">
-            <td class="cell-name">{{ c.userName }}</td>
+            <td class="cell-name">{{ getDisplayName(c.userId) }}</td>
             <td>{{ c.completed }}</td>
             <td>{{ c.estimateBurned.points.toFixed(1) }}</td>
             <td>{{ c.estimateBurned.hours.toFixed(1) }}</td>
