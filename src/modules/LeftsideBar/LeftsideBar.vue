@@ -77,7 +77,7 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
           <div v-if="isOpened" class="client__link-name">{{ displayName }}</div>
         </div>
         <div class="navigation__client-toggle">
-          <span ref="elRef" class="client__toggle-button" @click="toggleSidebar">
+          <span ref="elRef" class="client__toggle-button" @click.stop="toggleSidebar">
             <ToggleIcon :isOpened />
           </span>
           <Tooltip
