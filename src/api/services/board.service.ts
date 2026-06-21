@@ -9,6 +9,10 @@ import axiosApiInstance from '@/api/api';
 import type { IBoardMemberApi } from '@/shared/types/user.types';
 import { buildUrl } from '@/shared/lib/utils/buildUrl';
 import type { AddMemberResponse } from '../types/api.types';
+import type {
+  ContributorsResponse,
+  MyContributorResponse,
+} from '../../features/board/types/contributor.types';
 
 const BASE_URL = import.meta.env.VITE_API_B0ARDS_URL;
 
@@ -77,6 +81,32 @@ export const BoardService = {
 
   async getProjectUsers(boardId: string): Promise<IBoardMemberApi[]> {
     const url = buildUrl(BASE_URL, ':boardId/members', { boardId });
+    const response = await axiosApiInstance.get(url);
+    return response.data;
+  },
+
+  async getContributors(
+    boardId: string,
+    from: string,
+    to: string,
+  ): Promise<ContributorsResponse> {
+    const query = new URLSearchParams({ from, to });
+    const url =
+      buildUrl(BASE_URL, ':id/contributors', { id: boardId }) +
+      `?${query.toString()}`;
+    const response = await axiosApiInstance.get(url);
+    return response.data;
+  },
+
+  async getMyContributorStats(
+    boardId: string,
+    from: string,
+    to: string,
+  ): Promise<MyContributorResponse> {
+    const query = new URLSearchParams({ from, to });
+    const url =
+      buildUrl(BASE_URL, ':id/contributors/me', { id: boardId }) +
+      `?${query.toString()}`;
     const response = await axiosApiInstance.get(url);
     return response.data;
   },

@@ -69,7 +69,7 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
 <template>
   <aside class="leftside-bar" :class="{ 'leftside-bar--collapsed': !isOpened }">
     <div class="leftside-bar-navigation">
-      <a class="navigation__client">
+      <router-link to="/account" class="navigation__client">
         <div class="client__link-wrapper">
           <div class="client__link-icon">
             <img src="@/assets/images/client.jpg" alt="client" />
@@ -87,7 +87,7 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
             :disabled="isOpened"
           ></Tooltip>
         </div>
-      </a>
+      </router-link>
       <div class="navigation__sections">
         <div class="navigation__sections-list">
           <router-link to="/main">
