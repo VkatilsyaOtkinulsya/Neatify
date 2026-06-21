@@ -12,6 +12,7 @@ export const formToPayload = (form: TaskFormData): TaskPayloadBase => ({
   checklist: form.checklist,
   startDate: form.startDate,
   dueDate: form.dueDate,
+  estimate: form.estimate,
 });
 
 export const taskToForm = (task: Task): TaskFormData => ({
@@ -24,4 +25,5 @@ export const taskToForm = (task: Task): TaskFormData => ({
   checklist: task.checklist ?? [],
   startDate: task.startDate ? new Date(task.startDate) : undefined,
   dueDate: task.dueDate ? new Date(task.dueDate) : undefined,
+  estimate: task.estimate,
 });

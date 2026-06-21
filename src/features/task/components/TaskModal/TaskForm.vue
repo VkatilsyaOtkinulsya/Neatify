@@ -6,10 +6,22 @@ import TagInput from '@/components/ui/TagInput/TagInput.vue';
 import ChecklistEditor from './ChecklistEditor.vue';
 import DateRangePicker from './DateRangePicker.vue';
 import AssigneeSelector from './AssigneeSelector.vue';
-import { type TaskFormData } from '@/features/task/types/task.types';
+import { type TaskEstimate, type TaskFormData } from '@/features/task/types/task.types';
 import Input from '@/components/ui/input/Input.vue';
 import { statusLabels } from '../../variables/status';
 import { priorityLabels } from '../../variables/priority';
+
+const estimateUnitLabels = ['часы', 'дни', 'очки'] as const;
+const ESTIMATE_UNIT_MAP: Record<string, 'hours' | 'days' | 'points'> = {
+  часы: 'hours',
+  дни: 'days',
+  очки: 'points',
+};
+const ESTIMATE_UNIT_REVERSE_MAP: Record<string, string> = {
+  hours: 'часы',
+  days: 'дни',
+  points: 'очки',
+};
 
 interface Props {
   modelValue: TaskFormData;
@@ -75,71 +87,123 @@ const dates = computed({
     });
   },
 });
+
+const estimateUnitLabel = computed({
+  get: () =>
+    props.modelValue.estimate ? ESTIMATE_UNIT_REVERSE_MAP[props.modelValue.estimate.unit] ?? '' : '',
+  set: (label: string) => {
+    emit('update:modelValue', {
+      ...props.modelValue,
+      estimate: {
+        value: props.modelValue.estimate?.value ?? 0,
+        unit: ESTIMATE_UNIT_MAP[label] ?? 'hours',
+      },
+    });
+  },
+});
+
+const estimateValue = computed({
+  get: () => props.modelValue.estimate?.value,
+  set: (val: number | undefined) => {
+    emit('update:modelValue', {
+      ...props.modelValue,
+      estimate: {
+        value: val ?? 0,
+        unit: props.modelValue.estimate?.unit ?? 'hours',
+      },
+    });
+  },
+});
 </script>
 
 <template>
   <div class="space-y-4 p-0.5">
     <!-- Title -->
-    <div>
+    <div class="space-y-1">
+      <p class="text-sm font-medium">Название</p>
       <Input
         v-model="title"
         type="text"
-        placeholder="Название "
-        class="modal-input w-[70%] focus:outline-none focus:ring-2 focus:ring-ring"
+        placeholder="Введите название..."
+        class="modal-input w-full focus:outline-none focus:ring-2 focus:ring-ring"
         required
       />
     </div>
 
     <!-- Description -->
-    <div>
+    <div class="space-y-1">
+      <p class="text-sm font-medium">Описание</p>
       <Textarea
         v-model="description"
-        placeholder="Описание"
-        class="modal-input w-[70%] focus:outline-none focus:ring-2 focus:ring-ring"
+        placeholder="Введите описание..."
+        class="modal-input w-full focus:outline-none focus:ring-2 focus:ring-ring"
       />
     </div>
 
-    <!-- Priority -->
-    <div class="space-y-1 w-[35%]">
-      <p class="text-sm text-muted-foreground">Приоритет</p>
-      <SelectTaskForm
-        v-model="priority"
-        :items="priorityLabels"
-        class="flex-1"
-        placeholder="Выберите приоритет..."
-      />
+    <!-- Priority + Status -->
+    <div class="flex gap-4">
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Приоритет</p>
+        <SelectTaskForm
+          v-model="priority"
+          :items="priorityLabels"
+          class="flex-1"
+          placeholder="Выберите приоритет..."
+        />
+      </div>
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Статус</p>
+        <SelectTaskForm
+          v-model="status"
+          :items="statusLabels"
+          class="flex-1"
+          placeholder="Выберите статус..."
+        />
+      </div>
     </div>
 
-    <!-- Status -->
-    <div class="space-y-1 w-[35%]">
-      <p class="text-sm text-muted-foreground">Статус</p>
-      <SelectTaskForm
-        v-model="status"
-        :items="statusLabels"
-        class="flex-1"
-        placeholder="Выберите статус..."
-      />
+    <!-- Estimate + Dates -->
+    <div class="flex gap-4">
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Оценка</p>
+        <div class="flex gap-2">
+          <Input
+            v-model="estimateValue"
+            type="number"
+            placeholder="0"
+            class="modal-input w-[100px] focus:outline-none focus:ring-2 focus:ring-ring"
+            min="0"
+          />
+          <SelectTaskForm
+            v-model="estimateUnitLabel"
+            :items="estimateUnitLabels"
+            class="w-[120px]"
+            placeholder="Единица..."
+          />
+        </div>
+      </div>
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Даты</p>
+        <DateRangePicker v-model="dates" />
+      </div>
     </div>
 
+    <!-- Assignees + Tags -->
+    <div class="flex gap-4">
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Исполнители</p>
+        <AssigneeSelector v-model="assignees" />
+      </div>
+      <div class="space-y-1 flex-1">
+        <p class="text-sm font-medium">Теги</p>
+        <TagInput v-model="tags" />
+      </div>
+    </div>
+
+    <!-- Checklist -->
     <div class="space-y-1">
-      <p class="text-sm text-muted-foreground">Исполнители</p>
-      <AssigneeSelector v-model="assignees" />
-    </div>
-
-    <div class="space-y-1">
-      <p class="text-sm text-muted-foreground">Даты</p>
-      <DateRangePicker v-model="dates" />
-    </div>
-
-    <div class="space-y-1">
-      <p class="text-sm text-muted-foreground">Чек-лист</p>
+      <p class="text-sm font-medium">Чек-лист</p>
       <ChecklistEditor v-model="checklist" />
-    </div>
-
-    <!-- Tags -->
-    <div class="space-y-1">
-      <p class="text-sm text-muted-foreground">Теги</p>
-      <TagInput v-model="tags" />
     </div>
   </div>
 </template>

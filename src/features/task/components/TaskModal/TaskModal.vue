@@ -39,6 +39,7 @@ const defaultForm = (): TaskFormData => ({
   checklist: [],
   startDate: undefined,
   dueDate: undefined,
+  estimate: undefined,
 });
 
 const form = ref<TaskFormData>(defaultForm());
