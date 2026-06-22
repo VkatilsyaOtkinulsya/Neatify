@@ -69,13 +69,13 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
 <template>
   <aside class="leftside-bar" :class="{ 'leftside-bar--collapsed': !isOpened }">
     <div class="leftside-bar-navigation">
-      <a class="navigation__client">
-        <div class="client__link-wrapper">
+      <div class="navigation__client">
+        <router-link to="/account" class="client__link-wrapper">
           <div class="client__link-icon">
             <img src="@/assets/images/client.jpg" alt="client" />
           </div>
           <div v-if="isOpened" class="client__link-name">{{ displayName }}</div>
-        </div>
+        </router-link>
         <div class="navigation__client-toggle">
           <span ref="elRef" class="client__toggle-button" @click="toggleSidebar">
             <ToggleIcon :isOpened />
@@ -87,7 +87,7 @@ const handleCreateWorkspace = (data: { title: string; description?: string }) =>
             :disabled="isOpened"
           ></Tooltip>
         </div>
-      </a>
+      </div>
       <div class="navigation__sections">
         <div class="navigation__sections-list">
           <router-link to="/main">

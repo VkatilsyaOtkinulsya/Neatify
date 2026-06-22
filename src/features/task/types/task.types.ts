@@ -145,6 +145,7 @@ export interface TaskFormData {
   checklist: ChecklistItemInput[];
   startDate?: Date;
   dueDate?: Date;
+  estimate?: TaskEstimate;
 }
 
 export interface TaskPayloadBase {
@@ -157,6 +158,7 @@ export interface TaskPayloadBase {
   checklist: ChecklistItemInput[];
   startDate?: Date;
   dueDate?: Date;
+  estimate?: TaskEstimate;
 }
 
 export interface CreateTaskPayload extends TaskPayloadBase {

@@ -11,6 +11,7 @@ export const mergeTask = (task: Task, data: TaskPayloadBase): Task => ({
   assignees: data.assignees,
   startDate: data.startDate,
   dueDate: data.dueDate,
+  estimate: data.estimate,
 
   // ❗ оставляем старый checklist
   checklist: task.checklist,

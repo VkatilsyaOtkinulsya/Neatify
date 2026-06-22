@@ -24,6 +24,7 @@ const links = [
   { name: 'review', label: 'Обзор' },
   { name: 'board', label: 'Доска' },
   { name: 'table', label: 'Список' },
+  { name: 'contributors', label: 'Участники' },
 ] as const;
 
 const { data: projectData } = useProjectDetails(workspaceId, projectId);

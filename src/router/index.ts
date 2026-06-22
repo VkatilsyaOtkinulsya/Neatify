@@ -83,6 +83,13 @@ const routes: RouteRecordRaw[] = [
                 meta: { crumb: 'table', title: 'Таблица' },
               },
               {
+                path: 'contributors',
+                name: 'contributors',
+                component: () => import('@/modules/Contributors/Contributors.vue'),
+                beforeEnter: requirePermission('view_project'),
+                meta: { crumb: 'contributors', title: 'Участники' },
+              },
+              {
                 path: 'settings',
                 name: 'settings',
                 component: () => import('@/modules/Project/ProjectSettings/ProjectSettings.vue'),
@@ -98,12 +105,12 @@ const routes: RouteRecordRaw[] = [
         name: 'activity',
         component: () => import('@/pages/Activity/Activity.vue'),
       },
+      {
+        path: 'account',
+        name: 'account',
+        component: () => import('@/pages/ClientProfile.vue'),
+      },
     ],
-  },
-
-  {
-    path: '/account',
-    component: () => import('@/pages/ClientProfile.vue'),
   },
 
   {

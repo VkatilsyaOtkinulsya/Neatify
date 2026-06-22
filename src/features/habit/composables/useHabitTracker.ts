@@ -1,4 +1,4 @@
-import { computed } from 'vue';
+import { computed, unref, type MaybeRef } from 'vue';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/vue-query';
 import { HabitService } from '@/api/services/habits.service';
 import type {
@@ -12,15 +12,18 @@ export const habitKeys = {
   range: (from: string, to: string) => ['habit-logs', from, to] as const,
 };
 
-export function useHabitTracker(from: string, to: string) {
+export function useHabitTracker(from: MaybeRef<string>, to: MaybeRef<string>) {
   const queryClient = useQueryClient();
 
+  const fromVal = computed(() => unref(from));
+  const toVal = computed(() => unref(to));
+
   const invalidateRange = () =>
-    queryClient.invalidateQueries({ queryKey: habitKeys.range(from, to) });
+    queryClient.invalidateQueries({ queryKey: habitKeys.range(fromVal.value, toVal.value) });
 
   const { data: rangeData, isLoading } = useQuery({
-    queryKey: habitKeys.range(from, to),
-    queryFn: () => HabitService.getRange(from, to),
+    queryKey: computed(() => habitKeys.range(fromVal.value, toVal.value)),
+    queryFn: () => HabitService.getRange(fromVal.value, toVal.value),
   });
 
   const habits = computed(() => rangeData.value?.habits ?? []);
@@ -45,12 +48,12 @@ export function useHabitTracker(from: string, to: string) {
   const toggleHabit = useMutation({
     mutationFn: (dto: ToggleHabitDto) => HabitService.toggle(dto),
     onMutate: async (dto) => {
-      await queryClient.cancelQueries({ queryKey: habitKeys.range(from, to) });
+      await queryClient.cancelQueries({ queryKey: habitKeys.range(fromVal.value, toVal.value) });
 
-      const previous = queryClient.getQueryData(habitKeys.range(from, to));
+      const previous = queryClient.getQueryData(habitKeys.range(fromVal.value, toVal.value));
 
       queryClient.setQueryData(
-        habitKeys.range(from, to),
+        habitKeys.range(fromVal.value, toVal.value),
         (old: HabitLogRangeResponse | undefined) => {
           if (!old) return old;
 
@@ -79,7 +82,7 @@ export function useHabitTracker(from: string, to: string) {
 
     onError: (_err, _dto, context) => {
       if (context?.previous) {
-        queryClient.setQueryData(habitKeys.range(from, to), context.previous);
+        queryClient.setQueryData(habitKeys.range(fromVal.value, toVal.value), context.previous);
       }
     },
     onSuccess: invalidateRange,

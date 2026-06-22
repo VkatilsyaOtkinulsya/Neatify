@@ -1,4 +1,4 @@
-import { computed, type Ref } from 'vue';
+import { computed, unref, type MaybeRef, type Ref } from 'vue';
 import type { HabitResponse } from '@/features/habit/types/habit.types';
 
 type Log = {
@@ -12,14 +12,14 @@ type Log = {
 export function useHabitMatrix(
   habits: Ref<HabitResponse[]>,
   logs: Ref<Log[]>,
-  from: string,
-  to: string
+  from: MaybeRef<string>,
+  to: MaybeRef<string>
 ) {
   const dates = computed(() => {
     const result: string[] = [];
 
-    const start = new Date(from);
-    const end = new Date(to);
+    const start = new Date(unref(from));
+    const end = new Date(unref(to));
 
     const current = new Date(start);
 

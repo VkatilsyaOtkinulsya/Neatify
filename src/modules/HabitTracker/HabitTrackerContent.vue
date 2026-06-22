@@ -10,9 +10,27 @@ import { HABIT_ICONS, type HabitIconKey } from '@/shared/config/habitIcons';
 import HabitForm from './HabitForm.vue';
 import { useHabitMatrix } from '@/features/habit/composables/useHabitMatrix';
 import Checkbox from '@/components/ui/checkbox/Checkbox.vue';
+import { startOfWeek, endOfWeek, startOfMonth, endOfMonth, format } from 'date-fns';
 
-const from = new Date().toISOString().slice(0, 10);
-const to = new Date().toISOString().slice(0, 10);
+type RangeType = 'week' | 'month';
+const rangeType = ref<RangeType>('week');
+
+const from = computed(() => {
+  const now = new Date();
+  return rangeType.value === 'week'
+    ? format(startOfWeek(now, { weekStartsOn: 1 }), 'yyyy-MM-dd')
+    : format(startOfMonth(now), 'yyyy-MM-dd');
+});
+
+const to = computed(() => {
+  const now = new Date();
+  const end =
+    rangeType.value === 'week'
+      ? endOfWeek(now, { weekStartsOn: 1 })
+      : endOfMonth(now);
+  const capped = end > now ? now : end;
+  return format(capped, 'yyyy-MM-dd');
+});
 
 const { habits, logs, isLoading, createHabit, updateHabit, toggleHabit } = useHabitTracker(
   from,
@@ -79,26 +97,45 @@ const orderedHabits = computed(() => [...habits.value].sort((a, b) => a.order - 
         </div>
       </div>
 
-      <div class="habit-grid" :style="{ '--cols': habits.length }">
-        <div class="cell header">Дата</div>
-
-        <div v-for="habit in habits" :key="habit.id" class="cell header">
-          <component :is="HABIT_ICONS[habit.icon]?.component" class="w-4 h-4" />
+      <div class="habit-grid-wrapper">
+        <div class="habit-range-toggle">
+          <button
+            :class="['toggle-btn', { active: rangeType === 'week' }]"
+            @click="rangeType = 'week'"
+          >
+            Неделя
+          </button>
+          <button
+            :class="['toggle-btn', { active: rangeType === 'month' }]"
+            @click="rangeType = 'month'"
+          >
+            Месяц
+          </button>
         </div>
 
-        <template v-for="row in matrix" :key="row.date">
-          <div class="cell date">
-            {{ row.date }}
-          </div>
+        <div class="habit-grid-scroll">
+          <div class="habit-grid" :style="{ '--cols': habits.length }">
+            <div class="cell header">Дата</div>
 
-          <div v-for="cell in row.habits" :key="cell.habitId" class="cell">
-            <Checkbox
-              type="checkbox"
-              :model-value="cell.done"
-              @update:model-value="handleToggle(cell.habitId, row.date, $event)"
-            />
+            <div v-for="habit in habits" :key="habit.id" class="cell header">
+              <component :is="HABIT_ICONS[habit.icon]?.component" class="w-4 h-4" />
+            </div>
+
+            <template v-for="row in matrix" :key="row.date">
+              <div class="cell date">
+                {{ row.date }}
+              </div>
+
+              <div v-for="cell in row.habits" :key="cell.habitId" class="cell">
+                <Checkbox
+                  type="checkbox"
+                  :model-value="cell.done"
+                  @update:model-value="handleToggle(cell.habitId, row.date, $event)"
+                />
+              </div>
+            </template>
           </div>
-        </template>
+        </div>
       </div>
     </div>
   </div>
@@ -123,6 +160,46 @@ const orderedHabits = computed(() => [...habits.value].sort((a, b) => a.order - 
   display: flex;
   gap: 0.75rem;
   width: 100%;
+}
+
+.habit-grid-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.habit-grid-scroll {
+  overflow: auto;
+  max-height: 420px;
+}
+
+.habit-range-toggle {
+  display: flex;
+  gap: 0;
+  border-radius: 0.375rem;
+  overflow: hidden;
+  border: 1px solid hsl(var(--border));
+  width: fit-content;
+}
+
+.toggle-btn {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: hsl(var(--muted) / 0.3);
+  }
+
+  &.active {
+    background: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+  }
 }
 
 .habit-list {
